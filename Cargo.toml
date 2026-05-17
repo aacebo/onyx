@@ -1,0 +1,39 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+default-members = ["crates/*"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+readme = "README.md"
+documentation = "https://www.docs.rs/onyx"
+homepage = "https://www.github.com/aacebo/onyx"
+repository = "https://www.github.com/aacebo/onyx"
+
+[package]
+name = "onyxrs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+readme.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lib]
+name = "onyx"
+doctest = false
+
+[features]
+reflect = ["onyx-reflect", "onyx-reflect/macros", "onyx-reflect/serde"]
+
+[dependencies]
+onyx-reflect = { path = "crates/onyx-reflect", optional = true }
+
+ort = { version = "2.0.0-rc.12" }
+tokenizers = { version = "0.23", features = ["http"] }
+serde = { version = "1", features = ["derive"] }
+tracing = { version = "0.1" }
+hf-hub = { version = "0.5" }
