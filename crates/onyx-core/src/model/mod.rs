@@ -6,12 +6,68 @@ pub use capability::*;
 
 use async_trait::async_trait;
 
-use crate::{error, tensor};
+use crate::{error, pipeline, tensor};
 
-pub enum Model {
-    Embedding(Box<dyn Embedder>),
-    Classifier(Box<dyn Classifier>),
-    TokenClassifier(Box<dyn TokenClassifier>),
+/// A loaded model: one pipeline per capability the manifest declares.
+#[derive(Default)]
+pub struct Model {
+    embedder: Option<Box<dyn pipeline::Embedder>>,
+    classifier: Option<Box<dyn pipeline::Classifier>>,
+    token_classifier: Option<Box<dyn pipeline::TokenClassifier>>,
+}
+
+impl Model {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn with_embedder(mut self, embedder: Box<dyn pipeline::Embedder>) -> Self {
+        self.embedder = Some(embedder);
+        self
+    }
+
+    pub fn with_classifier(mut self, classifier: Box<dyn pipeline::Classifier>) -> Self {
+        self.classifier = Some(classifier);
+        self
+    }
+
+    pub fn with_token_classifier(
+        mut self,
+        token_classifier: Box<dyn pipeline::TokenClassifier>,
+    ) -> Self {
+        self.token_classifier = Some(token_classifier);
+        self
+    }
+
+    pub fn embedder(&self) -> Option<&dyn pipeline::Embedder> {
+        self.embedder.as_deref()
+    }
+
+    pub fn classifier(&self) -> Option<&dyn pipeline::Classifier> {
+        self.classifier.as_deref()
+    }
+
+    pub fn token_classifier(&self) -> Option<&dyn pipeline::TokenClassifier> {
+        self.token_classifier.as_deref()
+    }
+
+    pub fn capabilities(&self) -> Vec<ModelCapability> {
+        let mut caps = Vec::new();
+
+        if self.embedder.is_some() {
+            caps.push(ModelCapability::Embeddings);
+        }
+
+        if self.classifier.is_some() {
+            caps.push(ModelCapability::SequenceClassification);
+        }
+
+        if self.token_classifier.is_some() {
+            caps.push(ModelCapability::TokenClassification);
+        }
+
+        caps
+    }
 }
 
 #[async_trait]

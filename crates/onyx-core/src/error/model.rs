@@ -3,6 +3,7 @@
 pub enum ModelError {
     NotFound(String),
     Parse(String),
+    Tokenize(String),
 }
 
 impl ModelError {
@@ -13,6 +14,10 @@ impl ModelError {
     pub fn parse(message: impl Into<String>) -> Self {
         Self::Parse(message.into())
     }
+
+    pub fn tokenize(message: impl Into<String>) -> Self {
+        Self::Tokenize(message.into())
+    }
 }
 
 impl std::error::Error for ModelError {}
@@ -22,6 +27,7 @@ impl std::fmt::Display for ModelError {
         match self {
             Self::NotFound(m) => write!(f, "[resource] error: \"{m}\" not found"),
             Self::Parse(m) => write!(f, "[resource::model] error: {m}"),
+            Self::Tokenize(m) => write!(f, "[resource::model] tokenize error: {m}"),
         }
     }
 }
