@@ -27,13 +27,9 @@ name = "onyx"
 doctest = false
 
 [features]
-reflect = ["onyx-reflect", "onyx-reflect/macros", "onyx-reflect/serde"]
+default = []
+ort = ["dep:onyx-ort"]
 
 [dependencies]
-onyx-reflect = { path = "crates/onyx-reflect", optional = true }
-
-ort = { version = "2.0.0-rc.12" }
-tokenizers = { version = "0.23", features = ["http"] }
-serde = { version = "1", features = ["derive"] }
-tracing = { version = "0.1" }
-hf-hub = { version = "0.5" }
+onyx-core = { path = "crates/onyx-core" }
+onyx-ort = { path = "crates/onyx-ort", optional = true }

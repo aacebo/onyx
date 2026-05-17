@@ -15,4 +15,3 @@ doctest = false
 async-trait = "0.1"
 serde = { version = "1", features = ["derive", "rc"] }
 ndarray = { version = "0.17", features = ["serde"] }
-

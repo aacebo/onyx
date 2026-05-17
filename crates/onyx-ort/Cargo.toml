@@ -1,5 +1,5 @@
 [package]
-name = "onyx-reflect-macros"
+name = "onyx-ort"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -10,9 +10,11 @@ repository.workspace = true
 
 [lib]
 doctest = false
-proc-macro = true
 
 [dependencies]
-syn = { version = "2", features = ["full", "parsing", "extra-traits"] }
-quote = { version = "1" }
-proc-macro2 = { version = "1" }
+ort = { version = "2.0.0-rc.12" }
+hf-hub = { version = "0.5" }
+tracing = { version = "0.1" }
+tokenizers = { version = "0.23", features = ["http"] }
+
+onyx-core = { path = "../onyx-core" }
