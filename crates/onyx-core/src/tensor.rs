@@ -1,4 +1,9 @@
-#[derive(Debug, Clone, PartialEq, Eq)]
+use ndarray::ArrayD;
+
+use crate::error::{Error, RuntimeError};
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum DType {
     Bool,
     I8,
@@ -15,15 +20,16 @@ pub enum DType {
     String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Shape(Vec<Dim>);
-
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Dim {
     Fixed(usize),
     Symbolic(String),
     Unknown,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct Shape(Vec<Dim>);
 
 impl Shape {
     pub fn dims(&self) -> &[Dim] {
@@ -33,11 +39,26 @@ impl Shape {
     pub fn rank(&self) -> usize {
         self.0.len()
     }
-}
 
-impl From<Vec<Dim>> for Shape {
-    fn from(dims: Vec<Dim>) -> Self {
-        Self(dims)
+    /// Concrete dimension sizes, erroring if any dim is `Symbolic`/`Unknown`.
+    ///
+    /// A concrete tensor requires fully-known dims; symbolic shapes only make
+    /// sense for declared model signatures ([`IOSpec`](crate::runtime::IOSpec)).
+    pub fn to_fixed_dims(&self) -> Result<Vec<usize>, Error> {
+        self.0
+            .iter()
+            .map(|d| match d {
+                Dim::Fixed(n) => Ok(*n),
+                Dim::Symbolic(s) => Err(Error::Runtime(RuntimeError::ShapeMismatch {
+                    expected: "fixed dimension".into(),
+                    got: format!("symbolic dimension `{s}`"),
+                })),
+                Dim::Unknown => Err(Error::Runtime(RuntimeError::ShapeMismatch {
+                    expected: "fixed dimension".into(),
+                    got: "unknown dimension".into(),
+                })),
+            })
+            .collect()
     }
 }
 
@@ -59,73 +80,104 @@ impl<const N: usize> From<[usize; N]> for Shape {
     }
 }
 
-#[derive(Debug, Clone)]
-pub enum TensorData {
-    I64(Vec<i64>),
-    I32(Vec<i32>),
-    F32(Vec<f32>),
-    F64(Vec<f64>),
-    String(Vec<String>),
-    Bool(Vec<bool>),
+/// Reshape a flat buffer into an `ArrayD`, mapping shape/length errors onto
+/// [`RuntimeError::ShapeMismatch`].
+fn into_array<T>(shape: impl Into<Shape>, data: Vec<T>) -> Result<ArrayD<T>, Error> {
+    let dims = shape.into().to_fixed_dims()?;
+    let len = data.len();
+
+    ArrayD::from_shape_vec(dims.clone(), data).map_err(|_| {
+        Error::Runtime(RuntimeError::ShapeMismatch {
+            expected: format!(
+                "{} elements for shape {dims:?}",
+                dims.iter().product::<usize>()
+            ),
+            got: format!("{len} elements"),
+        })
+    })
 }
 
-impl From<Vec<i64>> for TensorData {
-    fn from(v: Vec<i64>) -> Self {
-        Self::I64(v)
-    }
-}
-
-impl From<Vec<i32>> for TensorData {
-    fn from(v: Vec<i32>) -> Self {
-        Self::I32(v)
-    }
-}
-
-impl From<Vec<f32>> for TensorData {
-    fn from(v: Vec<f32>) -> Self {
-        Self::F32(v)
-    }
-}
-
-impl From<Vec<f64>> for TensorData {
-    fn from(v: Vec<f64>) -> Self {
-        Self::F64(v)
-    }
-}
-
-impl From<Vec<String>> for TensorData {
-    fn from(v: Vec<String>) -> Self {
-        Self::String(v)
-    }
-}
-
-impl From<Vec<bool>> for TensorData {
-    fn from(v: Vec<bool>) -> Self {
-        Self::Bool(v)
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Tensor {
-    pub dtype: DType,
-    pub shape: Shape,
-    pub data: TensorData,
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(tag = "dtype", rename_all = "snake_case")]
+pub enum Tensor {
+    I64 { data: ArrayD<i64> },
+    I32 { data: ArrayD<i32> },
+    F32 { data: ArrayD<f32> },
+    F64 { data: ArrayD<f64> },
+    String { data: ArrayD<String> },
+    Bool { data: ArrayD<bool> },
 }
 
 impl Tensor {
-    pub fn i64(shape: impl Into<Shape>, data: Vec<i64>) -> Self {
-        Self {
-            dtype: DType::I64,
-            shape: shape.into(),
-            data: TensorData::I64(data),
+    pub fn i64(shape: impl Into<Shape>, data: Vec<i64>) -> Result<Self, Error> {
+        Ok(Self::I64 {
+            data: into_array(shape, data)?,
+        })
+    }
+
+    pub fn f32(shape: impl Into<Shape>, data: Vec<f32>) -> Result<Self, Error> {
+        Ok(Self::F32 {
+            data: into_array(shape, data)?,
+        })
+    }
+
+    /// The element type of this tensor.
+    pub fn dtype(&self) -> DType {
+        match self {
+            Self::I64 { .. } => DType::I64,
+            Self::I32 { .. } => DType::I32,
+            Self::F32 { .. } => DType::F32,
+            Self::F64 { .. } => DType::F64,
+            Self::String { .. } => DType::String,
+            Self::Bool { .. } => DType::Bool,
         }
     }
 
-    pub fn f32(shape: impl Into<Shape>, data: Vec<f32>) -> Self {
-        Self {
-            dtype: DType::F32,
-            shape: shape.into(),
-            data: TensorData::F32(data),
+    /// Concrete dims of the backing array as a `Fixed`-dim [`Shape`].
+    pub fn shape(&self) -> Shape {
+        match self {
+            Self::I64 { data } => data.shape().into(),
+            Self::I32 { data } => data.shape().into(),
+            Self::F32 { data } => data.shape().into(),
+            Self::F64 { data } => data.shape().into(),
+            Self::String { data } => data.shape().into(),
+            Self::Bool { data } => data.shape().into(),
         }
+    }
+}
+
+impl From<ArrayD<i64>> for Tensor {
+    fn from(data: ArrayD<i64>) -> Self {
+        Self::I64 { data }
+    }
+}
+
+impl From<ArrayD<i32>> for Tensor {
+    fn from(data: ArrayD<i32>) -> Self {
+        Self::I32 { data }
+    }
+}
+
+impl From<ArrayD<f32>> for Tensor {
+    fn from(data: ArrayD<f32>) -> Self {
+        Self::F32 { data }
+    }
+}
+
+impl From<ArrayD<f64>> for Tensor {
+    fn from(data: ArrayD<f64>) -> Self {
+        Self::F64 { data }
+    }
+}
+
+impl From<ArrayD<String>> for Tensor {
+    fn from(data: ArrayD<String>) -> Self {
+        Self::String { data }
+    }
+}
+
+impl From<ArrayD<bool>> for Tensor {
+    fn from(data: ArrayD<bool>) -> Self {
+        Self::Bool { data }
     }
 }

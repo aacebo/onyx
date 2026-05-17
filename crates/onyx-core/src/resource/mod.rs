@@ -7,7 +7,11 @@ pub use local::*;
 pub use remote::*;
 
 pub trait ResourceProvider {
-    fn provide(&self) -> Resource;
+    fn get_resource(&self, key: &str) -> Option<Resource>;
+}
+
+pub trait ResourceResolver {
+    fn resolve(&self, resource: &Resource) -> Result<Vec<u8>, crate::error::ResourceError>;
 }
 
 #[derive(Debug, Clone)]

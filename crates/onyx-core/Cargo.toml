@@ -13,5 +13,6 @@ doctest = false
 
 [dependencies]
 serde = { version = "1", features = ["derive", "rc"] }
+async-trait = "0.1"
+ndarray = { version = "0.17", features = ["serde"] }
 
-onyx-reflect = { path = "../onyx-reflect" }

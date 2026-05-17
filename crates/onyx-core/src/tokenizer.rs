@@ -6,8 +6,11 @@
 //! tokenization be a swappable peer crate composed with a `Session`, mirroring
 //! the [`Runtime`](crate::runtime::Runtime)/`Session` split.
 //!
-//! Like the other core traits this uses `async fn` in trait (RPITIT) and is
-//! not `dyn`-compatible out of the box; prefer static dispatch via generics.
+//! Like the other core traits this uses
+//! [`#[async_trait]`](async_trait::async_trait): its futures are `Send` and the
+//! trait is `dyn`-compatible.
+
+use async_trait::async_trait;
 
 use crate::error::Error;
 use crate::tensor::Tensor;
@@ -34,16 +37,20 @@ impl Encoding {
 
     /// The token ids as a `[len]`-shaped `i64` tensor.
     pub fn ids_tensor(&self) -> Tensor {
+        // Shape `[len]` always matches the buffer length, so this cannot fail.
         Tensor::i64([self.ids.len()], self.ids.clone())
+            .expect("[len]-shaped tensor from a len-element vec is always valid")
     }
 
     /// The attention mask as a `[len]`-shaped `i64` tensor.
     pub fn attention_mask_tensor(&self) -> Tensor {
         Tensor::i64([self.attention_mask.len()], self.attention_mask.clone())
+            .expect("[len]-shaped tensor from a len-element vec is always valid")
     }
 }
 
 /// Encodes text into token ids / attention masks for a model.
+#[async_trait]
 pub trait Tokenizer: Send + Sync {
     /// Encode a single text.
     async fn encode(&self, text: &str) -> Result<Encoding, Error>;
@@ -52,9 +59,11 @@ pub trait Tokenizer: Send + Sync {
     /// batched/padded tokenization; the default encodes sequentially.
     async fn encode_batch(&self, texts: &[&str]) -> Result<Vec<Encoding>, Error> {
         let mut out = Vec::with_capacity(texts.len());
+
         for text in texts {
             out.push(self.encode(text).await?);
         }
+
         Ok(out)
     }
 }

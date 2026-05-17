@@ -10,7 +10,7 @@ pub mod tokenizer;
 pub use error::Error;
 pub use io::{Inputs, Outputs, TensorMap};
 pub use resource::Resource;
-pub use runtime::{IoSpec, Runtime, Session};
+pub use runtime::{IOSpec, Runtime, Session};
 pub use task::{Classifier, Embedder, TokenClassifier};
 pub use tokenizer::{Encoding, Tokenizer};
 
