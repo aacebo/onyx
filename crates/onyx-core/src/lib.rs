@@ -4,14 +4,12 @@ pub mod resource;
 pub mod runtime;
 pub mod task;
 pub mod tensor;
-pub mod tokenizer;
 
 pub use error::Error;
 pub use resource::Resource;
 pub use runtime::Runtime;
 pub use task::*;
 pub use tensor::Tensor;
-pub use tokenizer::Tokenizer;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Span {
