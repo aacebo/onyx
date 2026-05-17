@@ -3,7 +3,7 @@ pub trait ResourceProvider {
 }
 
 pub trait ResourceLoader {
-    fn load(&self, resource: &Resource) -> Result<Vec<u8>, crate::error::ResourceError>;
+    fn load_resource(&self, resource: &Resource) -> Result<Vec<u8>, crate::error::ResourceError>;
 }
 
 #[derive(Debug, Clone)]

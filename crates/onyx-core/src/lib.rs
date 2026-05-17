@@ -9,9 +9,9 @@ pub mod tokenizer;
 pub use error::Error;
 pub use resource::Resource;
 pub use runtime::Runtime;
-pub use task::{Classifier, Embedder, TokenClassifier};
-pub use tensor::{Tensor, TensorMap};
-pub use tokenizer::{Encoding, Tokenizer};
+pub use task::*;
+pub use tensor::Tensor;
+pub use tokenizer::Tokenizer;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Span {
