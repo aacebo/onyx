@@ -1,5 +1,4 @@
 pub mod error;
-pub mod io;
 pub mod model;
 pub mod resource;
 pub mod runtime;
@@ -8,10 +7,10 @@ pub mod tensor;
 pub mod tokenizer;
 
 pub use error::Error;
-pub use io::{Inputs, Outputs, TensorMap};
 pub use resource::Resource;
-pub use runtime::{IOSpec, Runtime, Session};
+pub use runtime::Runtime;
 pub use task::{Classifier, Embedder, TokenClassifier};
+pub use tensor::{Tensor, TensorMap};
 pub use tokenizer::{Encoding, Tokenizer};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]

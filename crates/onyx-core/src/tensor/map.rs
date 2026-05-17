@@ -1,22 +1,14 @@
 use std::collections::BTreeMap;
 
-use crate::tensor::Tensor;
+use crate::Tensor;
 
-/// Named tensor map for model inputs/outputs (e.g. `"input_ids"`, `"logits"`).
-///
-/// Backed by a `BTreeMap` so iteration order is stable and deterministic,
-/// which keeps inference reproducible across runs.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Default, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(transparent)]
 pub struct TensorMap(BTreeMap<String, Tensor>);
 
 impl TensorMap {
     pub fn new() -> Self {
         Self(BTreeMap::new())
-    }
-
-    pub fn insert(&mut self, name: impl Into<String>, tensor: Tensor) -> &mut Self {
-        self.0.insert(name.into(), tensor);
-        self
     }
 
     pub fn get(&self, name: &str) -> Option<&Tensor> {
@@ -34,6 +26,11 @@ impl TensorMap {
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
+
+    pub fn insert(&mut self, name: impl Into<String>, tensor: Tensor) -> &mut Self {
+        self.0.insert(name.into(), tensor);
+        self
+    }
 }
 
 impl FromIterator<(String, Tensor)> for TensorMap {
@@ -47,9 +44,3 @@ impl<K: Into<String>, const N: usize> From<[(K, Tensor); N]> for TensorMap {
         Self(entries.into_iter().map(|(k, v)| (k.into(), v)).collect())
     }
 }
-
-/// Named input tensors handed to [`Session::infer`](crate::runtime::Session::infer).
-pub type Inputs = TensorMap;
-
-/// Named output tensors produced by [`Session::infer`](crate::runtime::Session::infer).
-pub type Outputs = TensorMap;
