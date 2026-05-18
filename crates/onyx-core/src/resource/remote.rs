@@ -22,6 +22,10 @@ impl RemoteResource {
 #[async_trait]
 impl Resource for RemoteResource {
     async fn read(&self) -> Result<std::path::PathBuf, error::ResourceError> {
+        if std::fs::exists(&self.cache).map_err(error::ResourceError::io)? {
+            return Ok(self.cache.clone());
+        }
+
         let mut res = reqwest::get(&self.url)
             .await
             .map_err(error::ResourceError::api)?;
