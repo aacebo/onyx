@@ -1,8 +1,10 @@
 mod architecture;
 mod capability;
+mod resources;
 
 pub use architecture::*;
 pub use capability::*;
+pub use resources::*;
 
 use async_trait::async_trait;
 

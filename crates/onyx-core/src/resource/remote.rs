@@ -1,39 +1,37 @@
-use crate::error;
+use std::io::Write;
 
-#[derive(Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[serde(transparent)]
-pub struct RemoteResource(String);
+use async_trait::async_trait;
+
+use crate::{Resource, error};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RemoteResource {
+    url: String,
+    cache: std::path::PathBuf,
+}
 
 impl RemoteResource {
-    pub fn new(url: impl Into<String>) -> Self {
-        Self(url.into())
+    pub fn new(url: impl Into<String>, cache: impl Into<std::path::PathBuf>) -> Self {
+        Self {
+            url: url.into(),
+            cache: cache.into(),
+        }
     }
 }
 
-impl std::ops::Deref for RemoteResource {
-    type Target = str;
+#[async_trait]
+impl Resource for RemoteResource {
+    async fn read(&self) -> Result<std::path::PathBuf, error::ResourceError> {
+        let mut res = reqwest::get(&self.url)
+            .await
+            .map_err(error::ResourceError::api)?;
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
+        let mut file = std::fs::File::create(&self.cache).map_err(error::ResourceError::io)?;
 
-impl std::str::FromStr for RemoteResource {
-    type Err = error::ResourceError;
+        while let Some(chunk) = res.chunk().await.map_err(error::ResourceError::api)? {
+            file.write_all(&chunk).map_err(error::ResourceError::io)?;
+        }
 
-    fn from_str(value: &str) -> Result<Self, Self::Err> {
-        Ok(Self(value.to_string()))
-    }
-}
-
-impl std::fmt::Debug for RemoteResource {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self)
-    }
-}
-
-impl std::fmt::Display for RemoteResource {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", &self.0)
+        Ok(self.cache.clone())
     }
 }

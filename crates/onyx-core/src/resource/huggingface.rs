@@ -1,4 +1,6 @@
-use crate::{error, model};
+use async_trait::async_trait;
+
+use crate::{Resource, error, model};
 
 #[derive(Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct HFResource {
@@ -87,5 +89,19 @@ impl std::fmt::Display for HFResource {
         }
 
         Ok(())
+    }
+}
+
+#[async_trait]
+impl Resource for HFResource {
+    async fn read(&self) -> Result<std::path::PathBuf, error::ResourceError> {
+        let path = hf_hub::api::tokio::Api::new()
+            .map_err(error::ResourceError::api)?
+            .model(self.model_id.to_string())
+            .get(&self.filename)
+            .await
+            .map_err(error::ResourceError::api)?;
+
+        Ok(path)
     }
 }

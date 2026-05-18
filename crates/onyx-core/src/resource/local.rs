@@ -1,4 +1,6 @@
-use crate::error;
+use async_trait::async_trait;
+
+use crate::{Resource, error};
 
 #[derive(Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(transparent)]
@@ -45,5 +47,12 @@ impl std::fmt::Debug for LocalResource {
 impl std::fmt::Display for LocalResource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "file://{}", self.0.as_path().display())
+    }
+}
+
+#[async_trait]
+impl Resource for LocalResource {
+    async fn read(&self) -> Result<std::path::PathBuf, error::ResourceError> {
+        Ok(self.0.clone())
     }
 }
