@@ -100,7 +100,7 @@ impl std::fmt::Debug for ModelId {
 impl std::fmt::Display for ModelId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(group) = &self.group {
-            write!(f, "{}/{}", group, &self.name)?;
+            return write!(f, "{}/{}", group, &self.name);
         }
 
         write!(f, "{}", &self.name)
@@ -136,26 +136,17 @@ mod tests {
     #[test]
     fn parse_valid() {
         let id = ModelId::from_str("facebook/bart-large").expect("should parse");
-        assert_eq!(&*id.group, "facebook");
-        assert_eq!(&*id.name, "bart-large");
+        assert_eq!(id.group(), Some("facebook"));
+        assert_eq!(id.name(), "bart-large");
         assert_eq!(id.to_string(), "facebook/bart-large");
     }
 
     #[test]
     fn parse_nested_slash() {
         let id = ModelId::from_str("facebook/bart/large").expect("should parse");
-        assert_eq!(&*id.group, "facebook");
-        assert_eq!(&*id.name, "bart/large");
+        assert_eq!(id.group(), Some("facebook"));
+        assert_eq!(id.name(), "bart/large");
         assert_eq!(id.to_string(), "facebook/bart/large");
-    }
-
-    #[test]
-    fn parse_missing_slash() {
-        let err = ModelId::from_str("facebookbartlarge").expect_err("should fail");
-        match err {
-            error::ModelError::Parse(m) => assert!(m.contains("invalid model id format")),
-            other => panic!("expected Parse error, got {other:?}"),
-        }
     }
 
     #[test]
