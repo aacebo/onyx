@@ -17,7 +17,7 @@ impl resource::ResourceProvider for HFResourceHub {
         {
             let source = self.api.model(model_id.to_string());
             let path = source
-                .download(filename)
+                .get(filename)
                 .await
                 .map_err(error::ResourceError::api)?;
 

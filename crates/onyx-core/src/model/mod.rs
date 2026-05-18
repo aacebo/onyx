@@ -50,13 +50,13 @@ pub struct ModelManifest {
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct ModelId {
-    group: Box<str>,
+    group: Option<Box<str>>,
     name: Box<str>,
 }
 
 impl ModelId {
-    pub fn group(&self) -> &str {
-        &self.group
+    pub fn group(&self) -> Option<&str> {
+        self.group.as_deref()
     }
 
     pub fn name(&self) -> &str {
@@ -68,19 +68,26 @@ impl std::str::FromStr for ModelId {
     type Err = error::ModelError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (group, name) = match s.split_once("/") {
-            None => return Err(error::ModelError::parse("invalid model id format")),
-            Some(v) => v,
-        };
+        if s.contains("/") {
+            let (group, name) = match s.split_once("/") {
+                None => return Err(error::ModelError::parse("invalid model id format")),
+                Some(v) => v,
+            };
 
-        if group.is_empty() || name.is_empty() {
-            return Err(error::ModelError::parse("invalid model id format"));
+            if group.is_empty() || name.is_empty() {
+                return Err(error::ModelError::parse("invalid model id format"));
+            }
+
+            Ok(Self {
+                group: Some(group.into()),
+                name: name.into(),
+            })
+        } else {
+            Ok(Self {
+                group: None,
+                name: s.into(),
+            })
         }
-
-        Ok(Self {
-            group: group.into(),
-            name: name.into(),
-        })
     }
 }
 
@@ -92,7 +99,11 @@ impl std::fmt::Debug for ModelId {
 
 impl std::fmt::Display for ModelId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}/{}", &self.group, &self.name)
+        if let Some(group) = &self.group {
+            write!(f, "{}/{}", group, &self.name)?;
+        }
+
+        write!(f, "{}", &self.name)
     }
 }
 
