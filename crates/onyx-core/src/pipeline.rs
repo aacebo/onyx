@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use crate::{Annotation, Tensor, error};
+use crate::{Annotation, error, tensor};
 
 /// A composed inference flow (tokenize -> session -> decode) that satisfies
 /// exactly one capability. Concrete pipelines additionally implement the
@@ -11,7 +11,7 @@ pub trait Pipeline: Send + Sync {}
 #[async_trait]
 pub trait Embedder: Pipeline {
     /// Embed each input text, returning one vector per input.
-    async fn embed(&self, texts: &[&str]) -> Result<Vec<Tensor>, error::ModelError>;
+    async fn embed(&self, texts: &[&str]) -> Result<Vec<tensor::FTensor>, error::ModelError>;
 }
 
 /// Assigns one or more labeled scores to whole input sequences.

@@ -21,24 +21,6 @@ impl Model {
         Self::default()
     }
 
-    pub fn with_embedder(mut self, embedder: Box<dyn pipeline::Embedder>) -> Self {
-        self.embedder = Some(embedder);
-        self
-    }
-
-    pub fn with_classifier(mut self, classifier: Box<dyn pipeline::Classifier>) -> Self {
-        self.classifier = Some(classifier);
-        self
-    }
-
-    pub fn with_token_classifier(
-        mut self,
-        token_classifier: Box<dyn pipeline::TokenClassifier>,
-    ) -> Self {
-        self.token_classifier = Some(token_classifier);
-        self
-    }
-
     pub fn embedder(&self) -> Option<&dyn pipeline::Embedder> {
         self.embedder.as_deref()
     }
@@ -49,24 +31,6 @@ impl Model {
 
     pub fn token_classifier(&self) -> Option<&dyn pipeline::TokenClassifier> {
         self.token_classifier.as_deref()
-    }
-
-    pub fn capabilities(&self) -> Vec<ModelCapability> {
-        let mut caps = Vec::new();
-
-        if self.embedder.is_some() {
-            caps.push(ModelCapability::Embeddings);
-        }
-
-        if self.classifier.is_some() {
-            caps.push(ModelCapability::SequenceClassification);
-        }
-
-        if self.token_classifier.is_some() {
-            caps.push(ModelCapability::TokenClassification);
-        }
-
-        caps
     }
 }
 

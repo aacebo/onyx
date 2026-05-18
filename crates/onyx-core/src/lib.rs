@@ -1,6 +1,8 @@
 pub mod error;
+#[cfg(feature = "huggingface")]
+pub mod huggingface;
 pub mod model;
-mod pipeline;
+pub mod pipeline;
 pub mod resource;
 pub mod tensor;
 pub mod tokenizer;

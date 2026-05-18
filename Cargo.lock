@@ -1285,18 +1285,18 @@ name = "onyx-core"
 version = "0.0.0"
 dependencies = [
  "async-trait",
+ "hf-hub 0.5.0",
  "ndarray",
  "serde",
+ "tokenizers",
 ]
 
 [[package]]
 name = "onyx-ort"
 version = "0.0.0"
 dependencies = [
- "hf-hub 0.5.0",
  "onyx-core",
  "ort",
- "tokenizers",
  "tracing",
 ]
 
