@@ -8,6 +8,7 @@ pub mod tensor;
 pub mod tokenizer;
 
 pub use error::Error;
+pub use model::Model;
 pub use pipeline::Pipeline;
 pub use resource::Resource;
 pub use tensor::Tensor;

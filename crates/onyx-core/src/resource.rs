@@ -6,7 +6,7 @@ use crate::error;
 
 #[async_trait]
 pub trait ResourceProvider {
-    async fn load(&self, key: &str) -> Result<Vec<u8>, error::ResourceError>;
+    async fn load(&self, id: &ResourceId) -> Result<Vec<u8>, error::ResourceError>;
 }
 
 #[derive(Clone, PartialEq, Eq)]

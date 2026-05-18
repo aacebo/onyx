@@ -54,6 +54,16 @@ pub struct ModelId {
     name: Box<str>,
 }
 
+impl ModelId {
+    pub fn group(&self) -> &str {
+        &self.group
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+}
+
 impl std::str::FromStr for ModelId {
     type Err = error::ModelError;
 
