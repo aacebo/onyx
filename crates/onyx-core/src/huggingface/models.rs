@@ -8,7 +8,7 @@ pub struct HFModelHub {
 
 #[async_trait]
 impl model::ModelProvider for HFModelHub {
-    async fn load(&self, id: &model::ModelId) -> Result<Model, error::ModelError> {
+    async fn load(&self, _id: &model::ModelId) -> Result<Model, error::ModelError> {
         todo!()
     }
 }
