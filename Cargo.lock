@@ -1288,6 +1288,7 @@ dependencies = [
  "hf-hub 0.5.0",
  "ndarray",
  "serde",
+ "serde_json",
  "tokenizers",
 ]
 

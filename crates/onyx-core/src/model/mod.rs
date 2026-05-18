@@ -64,6 +64,10 @@ impl std::str::FromStr for ModelId {
             Some(v) => v,
         };
 
+        if group.is_empty() || name.is_empty() {
+            return Err(error::ModelError::parse("invalid model id format"));
+        }
+
         Ok(Self {
             group: group.into(),
             name: name.into(),
@@ -101,5 +105,66 @@ impl<'de> serde::Deserialize<'de> for ModelId {
 
         let value = String::deserialize(deserializer)?;
         Self::from_str(&value).map_err(serde::de::Error::custom)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::str::FromStr;
+
+    #[test]
+    fn parse_valid() {
+        let id = ModelId::from_str("facebook/bart-large").expect("should parse");
+        assert_eq!(&*id.group, "facebook");
+        assert_eq!(&*id.name, "bart-large");
+        assert_eq!(id.to_string(), "facebook/bart-large");
+    }
+
+    #[test]
+    fn parse_nested_slash() {
+        let id = ModelId::from_str("facebook/bart/large").expect("should parse");
+        assert_eq!(&*id.group, "facebook");
+        assert_eq!(&*id.name, "bart/large");
+        assert_eq!(id.to_string(), "facebook/bart/large");
+    }
+
+    #[test]
+    fn parse_missing_slash() {
+        let err = ModelId::from_str("facebookbartlarge").expect_err("should fail");
+        match err {
+            error::ModelError::Parse(m) => assert!(m.contains("invalid model id format")),
+            other => panic!("expected Parse error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parse_empty_segments() {
+        for input in ["/name", "group/", "/", ""] {
+            let err = ModelId::from_str(input).expect_err("should fail");
+            assert!(
+                matches!(err, error::ModelError::Parse(_)),
+                "expected Parse error for {input:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn display_roundtrip() {
+        let id = ModelId::from_str("facebook/bart-large").unwrap();
+        assert_eq!(format!("{id}"), "facebook/bart-large");
+        assert_eq!(format!("{id:?}"), "facebook/bart-large");
+    }
+
+    #[test]
+    fn serde_roundtrip() {
+        let id = ModelId::from_str("facebook/bart-large").unwrap();
+        let json = serde_json::to_string(&id).unwrap();
+        assert_eq!(json, "\"facebook/bart-large\"");
+
+        let back: ModelId = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, id);
+
+        assert!(serde_json::from_str::<ModelId>("\"nogroup\"").is_err());
     }
 }
