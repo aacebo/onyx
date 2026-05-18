@@ -8,6 +8,11 @@ use async_trait::async_trait;
 
 use crate::{error, pipeline, tensor};
 
+#[async_trait]
+pub trait ModelProvider {
+    async fn load(&self, id: &ModelId) -> Result<Model, error::ModelError>;
+}
+
 /// A loaded model: one pipeline per capability the manifest declares.
 #[derive(Default)]
 pub struct Model {
@@ -32,12 +37,6 @@ impl Model {
     pub fn token_classifier(&self) -> Option<&dyn pipeline::TokenClassifier> {
         self.token_classifier.as_deref()
     }
-}
-
-#[async_trait]
-pub trait ModelRegistry {
-    async fn exists(&self, id: &ModelId) -> bool;
-    async fn get(&self, id: &ModelId) -> Result<Option<Model>, error::ModelError>;
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
