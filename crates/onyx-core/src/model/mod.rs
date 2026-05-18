@@ -134,8 +134,6 @@ impl<'de> serde::Deserialize<'de> for ModelId {
 
 #[cfg(test)]
 mod tests {
-    use serde::Serialize;
-
     use super::*;
     use std::str::FromStr;
 
