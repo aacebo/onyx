@@ -9,15 +9,10 @@ pub struct HFResourceHub {
 #[async_trait]
 impl resource::ResourceProvider for HFResourceHub {
     async fn load(&self, id: &resource::ResourceId) -> Result<Vec<u8>, error::ResourceError> {
-        if let resource::ResourceId::HuggingFace {
-            model_id,
-            filename,
-            revision: _,
-        } = id
-        {
-            let source = self.api.model(model_id.to_string());
+        if let resource::ResourceId::HuggingFace(resource) = id {
+            let source = self.api.model(resource.model_id().to_string());
             let path = source
-                .get(filename)
+                .get(resource.filename())
                 .await
                 .map_err(error::ResourceError::api)?;
 

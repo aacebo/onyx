@@ -78,16 +78,20 @@ impl std::str::FromStr for ModelId {
                 return Err(error::ModelError::parse("invalid model id format"));
             }
 
-            Ok(Self {
+            return Ok(Self {
                 group: Some(group.into()),
                 name: name.into(),
-            })
-        } else {
-            Ok(Self {
-                group: None,
-                name: s.into(),
-            })
+            });
         }
+
+        if s.is_empty() {
+            return Err(error::ModelError::parse("invalid model id format"));
+        }
+
+        Ok(Self {
+            group: None,
+            name: s.into(),
+        })
     }
 }
 
@@ -130,6 +134,8 @@ impl<'de> serde::Deserialize<'de> for ModelId {
 
 #[cfg(test)]
 mod tests {
+    use serde::Serialize;
+
     use super::*;
     use std::str::FromStr;
 
@@ -176,6 +182,11 @@ mod tests {
         let back: ModelId = serde_json::from_str(&json).unwrap();
         assert_eq!(back, id);
 
-        assert!(serde_json::from_str::<ModelId>("\"nogroup\"").is_err());
+        assert_eq!(
+            serde_json::from_str::<ModelId>("\"nogroup\"")
+                .unwrap()
+                .to_string(),
+            "nogroup"
+        );
     }
 }
