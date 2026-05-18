@@ -12,6 +12,7 @@ repository.workspace = true
 doctest = false
 
 [features]
+default = ["tokenizers", "huggingface"]
 tokenizers = ["dep:tokenizers"]
 huggingface = ["dep:hf-hub"]
 
