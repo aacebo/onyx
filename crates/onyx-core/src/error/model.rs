@@ -25,9 +25,9 @@ impl std::error::Error for ModelError {}
 impl std::fmt::Display for ModelError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::NotFound(m) => write!(f, "[resource] error: \"{m}\" not found"),
-            Self::Parse(m) => write!(f, "[resource::model] error: {m}"),
-            Self::Tokenize(m) => write!(f, "[resource::model] tokenize error: {m}"),
+            Self::NotFound(m) => write!(f, "[model] error: \"{m}\" not found"),
+            Self::Parse(m) => write!(f, "[model::parse] error: {m}"),
+            Self::Tokenize(m) => write!(f, "[model::tokenize] error: {m}"),
         }
     }
 }
