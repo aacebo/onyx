@@ -7,7 +7,6 @@ pub use schema::*;
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DType {
-    Bool,
     I8,
     I16,
     I32,
@@ -16,14 +15,14 @@ pub enum DType {
     U16,
     U32,
     U64,
-    F16,
     F32,
     F64,
+    Bool,
     String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(tag = "type", content = "data", rename_all = "snake_case")]
 pub enum Dim {
     Fixed(usize),
     Symbolic(String),
@@ -62,7 +61,7 @@ impl<const N: usize> From<[usize; N]> for Shape {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(tag = "dtype", rename_all = "snake_case")]
+#[serde(tag = "dtype", content = "data", rename_all = "snake_case")]
 pub enum Tensor {
     Number(NTensor),
     String(ndarray::ArrayD<String>),
@@ -186,7 +185,7 @@ impl From<ndarray::ArrayD<bool>> for Tensor {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(tag = "dtype", rename_all = "snake_case")]
+#[serde(tag = "dtype", content = "data", rename_all = "snake_case")]
 pub enum NTensor {
     Signed(ITensor),
     Unsigned(UTensor),
@@ -232,7 +231,7 @@ impl From<FTensor> for NTensor {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(tag = "dtype", rename_all = "snake_case")]
+#[serde(tag = "dtype", content = "data", rename_all = "snake_case")]
 pub enum UTensor {
     U8(ndarray::ArrayD<u8>),
     U16(ndarray::ArrayD<u16>),
@@ -287,7 +286,7 @@ impl From<ndarray::ArrayD<u64>> for UTensor {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(tag = "dtype", rename_all = "snake_case")]
+#[serde(tag = "dtype", content = "data", rename_all = "snake_case")]
 pub enum ITensor {
     I8(ndarray::ArrayD<i8>),
     I16(ndarray::ArrayD<i16>),
@@ -342,7 +341,7 @@ impl From<ndarray::ArrayD<i64>> for ITensor {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(tag = "dtype", rename_all = "snake_case")]
+#[serde(tag = "dtype", content = "data", rename_all = "snake_case")]
 pub enum FTensor {
     F32(ndarray::ArrayD<f32>),
     F64(ndarray::ArrayD<f64>),
