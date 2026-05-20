@@ -11,17 +11,15 @@ pub struct HFResource {
 
 impl HFResource {
     pub fn parse(url: impl AsRef<str>) -> Result<Self, error::ResourceError> {
-        let parsed = url::Url::parse(url.as_ref()).map_err(error::ResourceError::parse)?;
+        let url = url::Url::parse(url.as_ref()).map_err(error::ResourceError::parse)?;
+        let host = url
+            .host_str()
+            .filter(|s| !s.is_empty())
+            .ok_or(error::ResourceError::parse(
+                "invalid hf url: missing model id",
+            ))?;
 
-        let host =
-            parsed
-                .host_str()
-                .filter(|s| !s.is_empty())
-                .ok_or(error::ResourceError::parse(
-                    "invalid hf url: missing model id",
-                ))?;
-
-        let mut segments: Vec<&str> = parsed
+        let mut segments: Vec<&str> = url
             .path_segments()
             .map(|s| s.filter(|p| !p.is_empty()).collect())
             .unwrap_or_default();
@@ -42,7 +40,7 @@ impl HFResource {
         .parse()
         .map_err(error::ResourceError::parse)?;
 
-        let query: std::collections::HashMap<_, _> = parsed.query_pairs().into_owned().collect();
+        let query: std::collections::HashMap<_, _> = url.query_pairs().into_owned().collect();
 
         let path = if let Some(p) = query.get("path") {
             std::path::PathBuf::from(p).join(&filename)

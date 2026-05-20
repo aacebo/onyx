@@ -15,8 +15,8 @@ impl RemoteResource {
     pub fn parse(url: impl AsRef<str>) -> Result<Self, error::ResourceError> {
         use std::str::FromStr;
 
-        let parsed = url::Url::parse(url.as_ref()).map_err(error::ResourceError::parse)?;
-        let name = parsed
+        let url = url::Url::parse(url.as_ref()).map_err(error::ResourceError::parse)?;
+        let name = url
             .path_segments()
             .ok_or(error::ResourceError::parse("invalid resource url"))?
             .filter(|s| !s.is_empty())
@@ -24,7 +24,7 @@ impl RemoteResource {
             .ok_or(error::ResourceError::parse("invalid resource url"))?
             .to_string();
 
-        let query: HashMap<String, String> = parsed.query_pairs().into_owned().collect();
+        let query: HashMap<String, String> = url.query_pairs().into_owned().collect();
         let mut path = std::env::temp_dir().join(format!("onyx/{}", &name));
 
         if let Some(param) = query.get("path") {
@@ -33,11 +33,7 @@ impl RemoteResource {
             path = path.join(&name);
         }
 
-        Ok(Self {
-            url: parsed,
-            name,
-            path,
-        })
+        Ok(Self { url, name, path })
     }
 }
 
