@@ -27,7 +27,9 @@ name = "onyx"
 doctest = false
 
 [features]
-default = []
+default = ["tokenizers", "huggingface"]
+tokenizers = ["onyx-core/tokenizers"]
+huggingface = ["onyx-core/huggingface"]
 ort = ["dep:onyx-ort"]
 
 [dependencies]

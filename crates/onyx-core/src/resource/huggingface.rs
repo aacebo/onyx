@@ -11,7 +11,7 @@ pub struct HFResource {
 
 impl HFResource {
     pub fn parse(url: impl AsRef<str>) -> Result<Self, error::ResourceError> {
-        let url = url::Url::parse(url.as_ref()).map_err(error::ResourceError::parse)?;
+        let url = reqwest::Url::parse(url.as_ref()).map_err(error::ResourceError::parse)?;
         let host = url
             .host_str()
             .filter(|s| !s.is_empty())

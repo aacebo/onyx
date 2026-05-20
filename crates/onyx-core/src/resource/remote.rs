@@ -7,7 +7,7 @@ use crate::{Resource, error};
 #[derive(Clone, PartialEq, Eq)]
 pub struct RemoteResource {
     name: String,
-    url: url::Url,
+    url: reqwest::Url,
     path: std::path::PathBuf,
 }
 
@@ -15,7 +15,7 @@ impl RemoteResource {
     pub fn parse(url: impl AsRef<str>) -> Result<Self, error::ResourceError> {
         use std::str::FromStr;
 
-        let url = url::Url::parse(url.as_ref()).map_err(error::ResourceError::parse)?;
+        let url = reqwest::Url::parse(url.as_ref()).map_err(error::ResourceError::parse)?;
         let name = url
             .path_segments()
             .ok_or(error::ResourceError::parse("invalid resource url"))?
