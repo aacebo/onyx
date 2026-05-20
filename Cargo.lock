@@ -1417,10 +1417,12 @@ dependencies = [
  "async-trait",
  "hf-hub 0.5.0",
  "ndarray",
+ "onyx-macros",
  "reqwest 0.13.3",
  "serde",
  "serde_json",
  "tokenizers",
+ "url",
 ]
 
 [[package]]

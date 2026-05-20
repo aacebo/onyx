@@ -10,36 +10,8 @@ pub struct HFResource {
 }
 
 impl HFResource {
-    pub fn new(
-        model_id: model::ModelId,
-        filename: impl Into<String>,
-        revision: Option<impl Into<String>>,
-    ) -> Self {
-        Self {
-            model_id,
-            filename: filename.into(),
-            revision: revision.map(|rev| rev.into()),
-        }
-    }
-
-    pub fn model_id(&self) -> &model::ModelId {
-        &self.model_id
-    }
-
-    pub fn filename(&self) -> &str {
-        &self.filename
-    }
-
-    pub fn revision(&self) -> Option<&str> {
-        self.revision.as_deref()
-    }
-}
-
-impl std::str::FromStr for HFResource {
-    type Err = error::ResourceError;
-
-    fn from_str(value: &str) -> Result<Self, Self::Err> {
-        let mut parts = value.trim_start_matches("hf://").split('#');
+    pub fn parse(url: impl AsRef<str>) -> Result<Self, error::ResourceError> {
+        let mut parts = url.as_ref().trim_start_matches("hf://").split('#');
         let model_id = parts.next().unwrap_or_default();
         let filename = parts.next().ok_or(error::ResourceError::parse(
             "invalid resource id format: missing filename",
@@ -71,6 +43,28 @@ impl std::str::FromStr for HFResource {
                 .filter(|value| !value.is_empty())
                 .map(ToOwned::to_owned),
         })
+    }
+}
+
+impl HFResource {
+    pub fn model_id(&self) -> &model::ModelId {
+        &self.model_id
+    }
+
+    pub fn filename(&self) -> &str {
+        &self.filename
+    }
+
+    pub fn revision(&self) -> Option<&str> {
+        self.revision.as_deref()
+    }
+}
+
+impl std::str::FromStr for HFResource {
+    type Err = error::ResourceError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        Self::parse(value)
     }
 }
 
