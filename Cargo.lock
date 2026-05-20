@@ -1429,6 +1429,7 @@ dependencies = [
 name = "onyx-macros"
 version = "0.0.0"
 dependencies = [
+ "onyx-core",
  "zyn",
 ]
 

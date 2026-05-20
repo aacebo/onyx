@@ -13,7 +13,10 @@ doctest = false
 proc-macro = true
 
 [features]
-huggingface = []
+huggingface = ["onyx-core/huggingface"]
 
 [dependencies]
 zyn = { version = "0.5" }
+
+[dev-dependencies]
+onyx-core = { path = "../onyx-core" }
