@@ -1,0 +1,19 @@
+[package]
+name = "onyx-macros"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+readme.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lib]
+doctest = false
+proc-macro = true
+
+[features]
+huggingface = []
+
+[dependencies]
+zyn = { version = "0.5" }

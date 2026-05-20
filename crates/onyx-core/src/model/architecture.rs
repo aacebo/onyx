@@ -1,6 +1,6 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum ModelArchitecture {
+pub enum Architecture {
     #[serde(rename = "BERT")]
     Bert,
 
@@ -14,7 +14,7 @@ pub enum ModelArchitecture {
     Deberta,
 }
 
-impl ModelArchitecture {
+impl Architecture {
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::Bert => "BERT",
@@ -23,9 +23,20 @@ impl ModelArchitecture {
             Self::Deberta => "DeBERTa",
         }
     }
+
+    // pub fn resources() -> Vec<> {
+    //     match self {
+    //         Self::Bert
+    //         | Self::Deberta
+    //         | Self::DistilBert
+    //         | Self::Roberta => vec![
+
+    //         ],
+    //     }
+    // }
 }
 
-impl std::fmt::Display for ModelArchitecture {
+impl std::fmt::Display for Architecture {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.as_str())
     }

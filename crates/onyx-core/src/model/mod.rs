@@ -42,7 +42,7 @@ impl Model {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ModelManifest {
     pub id: ModelId,
-    pub architecture: ModelArchitecture,
+    pub architecture: Architecture,
     pub capabilities: Vec<ModelCapability>,
     pub inputs: tensor::TensorSchema,
     pub outputs: tensor::TensorSchema,
