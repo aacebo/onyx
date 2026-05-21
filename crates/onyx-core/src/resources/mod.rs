@@ -1,19 +1,29 @@
-mod local;
-mod remote;
+mod format;
+mod location;
 
-pub use local::*;
-pub use remote::*;
+pub use format::*;
+pub use location::*;
 
 use async_trait::async_trait;
 
-use crate::error;
+pub trait Decode: Sized {
+    type Error;
+
+    fn decode(resource: &Resource) -> Result<Self, Self::Error>;
+}
 
 #[async_trait]
-pub trait Resource: std::fmt::Display {
-    async fn download(&self) -> Result<std::path::PathBuf, error::ResourceError>;
+pub trait Resolver {
+    type Error;
 
-    async fn read(&self) -> Result<Vec<u8>, error::ResourceError> {
-        let path = self.download().await?;
-        Ok(std::fs::read(path).map_err(error::ResourceError::io)?)
-    }
+    /// resolves a resource and returns
+    /// its on-disk path.
+    async fn resolve(&self, uri: &str) -> Result<Resource, Self::Error>;
+}
+
+#[derive(Clone, PartialEq, Eq)]
+pub struct Resource {
+    pub name: String,
+    pub format: ResourceFormat,
+    pub location: ResourceLocation,
 }

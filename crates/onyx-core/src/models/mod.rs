@@ -7,17 +7,7 @@ pub use architecture::*;
 pub use config::*;
 pub use r#type::*;
 
-use async_trait::async_trait;
-
 use crate::error;
-
-#[async_trait]
-pub trait Provider {
-    async fn load(&self, model_id: &ModelId) -> Result<Box<dyn Model>, error::ModelError>;
-}
-
-#[async_trait]
-pub trait Model {}
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct ModelId {
