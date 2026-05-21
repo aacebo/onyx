@@ -1,4 +1,5 @@
 mod architecture;
+pub mod bert;
 mod capability;
 
 pub use architecture::*;
@@ -6,47 +7,15 @@ pub use capability::*;
 
 use async_trait::async_trait;
 
-use crate::{error, pipeline, tensor};
+use crate::error;
 
 #[async_trait]
-pub trait ModelProvider {
-    async fn load(&self, id: &ModelId) -> Result<Model, error::ModelError>;
+pub trait Provider {
+    async fn load(&self, model_id: &ModelId) -> Result<Box<dyn Model>, error::ModelError>;
 }
 
-/// A loaded model: one pipeline per capability the manifest declares.
-#[derive(Default)]
-pub struct Model {
-    embedder: Option<Box<dyn pipeline::Embedder>>,
-    classifier: Option<Box<dyn pipeline::Classifier>>,
-    token_classifier: Option<Box<dyn pipeline::TokenClassifier>>,
-}
-
-impl Model {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn embedder(&self) -> Option<&dyn pipeline::Embedder> {
-        self.embedder.as_deref()
-    }
-
-    pub fn classifier(&self) -> Option<&dyn pipeline::Classifier> {
-        self.classifier.as_deref()
-    }
-
-    pub fn token_classifier(&self) -> Option<&dyn pipeline::TokenClassifier> {
-        self.token_classifier.as_deref()
-    }
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ModelManifest {
-    pub id: ModelId,
-    pub architecture: Architecture,
-    pub capabilities: Vec<ModelCapability>,
-    pub inputs: tensor::TensorSchema,
-    pub outputs: tensor::TensorSchema,
-}
+#[async_trait]
+pub trait Model {}
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct ModelId {

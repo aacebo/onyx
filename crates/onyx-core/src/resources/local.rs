@@ -97,7 +97,7 @@ impl std::fmt::Display for LocalResource {
 
 #[async_trait]
 impl Resource for LocalResource {
-    async fn read(&self) -> Result<std::path::PathBuf, error::ResourceError> {
+    async fn download(&self) -> Result<std::path::PathBuf, error::ResourceError> {
         Ok(self.path.clone())
     }
 }

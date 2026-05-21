@@ -23,17 +23,6 @@ impl Architecture {
             Self::Deberta => "DeBERTa",
         }
     }
-
-    // pub fn resources() -> Vec<> {
-    //     match self {
-    //         Self::Bert
-    //         | Self::Deberta
-    //         | Self::DistilBert
-    //         | Self::Roberta => vec![
-
-    //         ],
-    //     }
-    // }
 }
 
 impl std::fmt::Display for Architecture {

@@ -1,7 +1,7 @@
 pub use onyx_core::*;
 
-#[cfg(feature = "ort")]
-pub mod ort {
+#[cfg(feature = "huggingface")]
+pub mod huggingface {
     #[allow(unused)]
-    pub use onyx_ort::*;
+    pub use onyx_huggingface::*;
 }

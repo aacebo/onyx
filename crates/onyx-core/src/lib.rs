@@ -1,16 +1,14 @@
 pub mod error;
-pub mod model;
-pub mod pipeline;
-pub mod resource;
+pub mod models;
+pub mod pipelines;
+pub mod resources;
 pub mod tensor;
-pub mod tokenizer;
+pub mod tokens;
 
 pub use error::Error;
-pub use model::Model;
-pub use pipeline::Pipeline;
-pub use resource::Resource;
+pub use pipelines::Pipeline;
+pub use resources::Resource;
 pub use tensor::Tensor;
-pub use tokenizer::{Encoding, Tokenizer};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Span {

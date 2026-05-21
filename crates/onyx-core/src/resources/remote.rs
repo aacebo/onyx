@@ -78,7 +78,7 @@ impl<'de> serde::Deserialize<'de> for RemoteResource {
 
 #[async_trait]
 impl Resource for RemoteResource {
-    async fn read(&self) -> Result<std::path::PathBuf, error::ResourceError> {
+    async fn download(&self) -> Result<std::path::PathBuf, error::ResourceError> {
         if std::fs::exists(&self.path).map_err(error::ResourceError::io)? {
             return Ok(self.path.clone());
         }

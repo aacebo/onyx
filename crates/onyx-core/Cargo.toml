@@ -13,21 +13,12 @@ doctest = false
 
 [features]
 default = []
-tokenizers = ["dep:tokenizers"]
-huggingface = ["dep:hf-hub", "onyx-macros/huggingface"]
 
 [dependencies]
 async-trait = "0.1"
 serde = { version = "1", features = ["derive", "rc"] }
 ndarray = { version = "0.17", features = ["serde"] }
 reqwest = { version = "0.13", features = ["json"] }
-
-# --- Optional ---
-hf-hub = { version = "0.5", optional = true }
-tokenizers = { version = "0.23", features = ["http"], optional = true }
-
-# --- Local ---
-onyx-macros = { path = "../onyx-macros" }
 
 [dev-dependencies]
 serde_json = "1"

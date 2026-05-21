@@ -1,5 +1,5 @@
 [package]
-name = "onyx-ort"
+name = "onyx-huggingface"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,7 +12,8 @@ repository.workspace = true
 doctest = false
 
 [dependencies]
-ort = { version = "2.0.0-rc.12" }
+candle-core = "0.10.2"
+tokenizers = { version = "0.23", features = ["http"] }
 tracing = { version = "0.1" }
 
 onyx-core = { path = "../onyx-core" }
