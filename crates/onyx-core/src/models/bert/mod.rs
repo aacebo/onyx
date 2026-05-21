@@ -1,5 +1,5 @@
 mod config;
-mod repository;
+mod resource;
 
 pub use config::*;
-pub use repository::*;
+pub use resource::*;

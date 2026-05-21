@@ -28,8 +28,6 @@ doctest = false
 
 [features]
 default = []
-huggingface = ["onyx-huggingface"]
 
 [dependencies]
 onyx-core = { path = "crates/onyx-core" }
-onyx-huggingface = { path = "crates/onyx-huggingface", optional = true }

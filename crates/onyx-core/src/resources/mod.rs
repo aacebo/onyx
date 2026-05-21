@@ -6,10 +6,10 @@ pub use remote::*;
 
 use async_trait::async_trait;
 
-use crate::{error, models};
+use crate::error;
 
 #[async_trait]
-pub trait Resource {
+pub trait Resource: std::fmt::Display {
     async fn download(&self) -> Result<std::path::PathBuf, error::ResourceError>;
 
     async fn read(&self) -> Result<Vec<u8>, error::ResourceError> {

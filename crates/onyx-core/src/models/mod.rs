@@ -1,9 +1,11 @@
 mod architecture;
 pub mod bert;
-mod capability;
+mod config;
+mod r#type;
 
 pub use architecture::*;
-pub use capability::*;
+pub use config::*;
+pub use r#type::*;
 
 use async_trait::async_trait;
 

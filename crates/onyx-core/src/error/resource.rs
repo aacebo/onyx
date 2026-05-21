@@ -2,6 +2,7 @@
 #[serde(tag = "name", rename_all = "snake_case")]
 pub enum ResourceError {
     Api(String),
+    Config(String),
     NotFound(String),
     Parse(String),
     IO(String),
@@ -10,6 +11,10 @@ pub enum ResourceError {
 impl ResourceError {
     pub fn api(message: impl std::fmt::Display) -> Self {
         Self::Api(message.to_string())
+    }
+
+    pub fn config(target: impl std::fmt::Display) -> Self {
+        Self::Config(target.to_string())
     }
 
     pub fn not_found(target: impl std::fmt::Display) -> Self {
@@ -31,6 +36,7 @@ impl std::fmt::Display for ResourceError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Api(m) => write!(f, "[resource::api] error: {m}"),
+            Self::Config(m) => write!(f, "[resource::config] error: {m}"),
             Self::NotFound(m) => write!(f, "[resource] error: \"{m}\" not found"),
             Self::Parse(m) => write!(f, "[resource::parse] error: {m}"),
             Self::IO(m) => write!(f, "[resource::io] error: {m}"),
