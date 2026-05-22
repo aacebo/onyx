@@ -1,6 +1,6 @@
 #[derive(Default, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum ResourceFormat {
+pub enum Format {
     #[default]
     Unknown,
     SafeTensors,
@@ -10,7 +10,7 @@ pub enum ResourceFormat {
     Json,
 }
 
-impl ResourceFormat {
+impl Format {
     pub fn from_ext(ext: impl AsRef<str>) -> Self {
         match ext.as_ref() {
             "safetensors" => Self::SafeTensors,
@@ -34,13 +34,13 @@ impl ResourceFormat {
     }
 }
 
-impl std::fmt::Debug for ResourceFormat {
+impl std::fmt::Debug for Format {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self)
     }
 }
 
-impl std::fmt::Display for ResourceFormat {
+impl std::fmt::Display for Format {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.as_str())
     }

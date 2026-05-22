@@ -28,6 +28,8 @@ doctest = false
 
 [features]
 default = []
+tokio = ["onyx-tokio"]
 
 [dependencies]
 onyx-core = { path = "crates/onyx-core" }
+onyx-tokio = { path = "crates/onyx-tokio", optional = true }

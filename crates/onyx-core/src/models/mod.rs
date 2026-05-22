@@ -7,7 +7,7 @@ pub use architecture::*;
 pub use config::*;
 pub use r#type::*;
 
-use crate::error;
+use crate::Error;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct ModelId {
@@ -26,17 +26,17 @@ impl ModelId {
 }
 
 impl std::str::FromStr for ModelId {
-    type Err = error::ModelError;
+    type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.contains("/") {
             let (group, name) = match s.split_once("/") {
-                None => return Err(error::ModelError::parse("invalid model id format")),
+                None => return Err(Error::message("invalid model id format")),
                 Some(v) => v,
             };
 
             if group.is_empty() || name.is_empty() {
-                return Err(error::ModelError::parse("invalid model id format"));
+                return Err(Error::message("invalid model id format"));
             }
 
             return Ok(Self {
@@ -46,7 +46,7 @@ impl std::str::FromStr for ModelId {
         }
 
         if s.is_empty() {
-            return Err(error::ModelError::parse("invalid model id format"));
+            return Err(Error::message("invalid model id format"));
         }
 
         Ok(Self {
@@ -119,7 +119,7 @@ mod tests {
         for input in ["/name", "group/", "/", ""] {
             let err = ModelId::from_str(input).expect_err("should fail");
             assert!(
-                matches!(err, error::ModelError::Parse(_)),
+                matches!(err, Error::Message(_)),
                 "expected Parse error for {input:?}"
             );
         }
