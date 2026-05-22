@@ -55,11 +55,7 @@ impl resources::Resolver for TokioResourceResolver {
 
                 let mut file = tokio::fs::File::create(path).await?;
 
-                while let Some(mut chunk) = res
-                    .chunk()
-                    .await
-                    .map_err(|err| tokio::io::Error::other(err))?
-                {
+                while let Some(mut chunk) = res.chunk().await.map_err(|err| tokio::io::Error::other(err))? {
                     use tokio::io::AsyncWriteExt;
 
                     file.write_all_buf(&mut chunk).await?;

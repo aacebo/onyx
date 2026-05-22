@@ -34,9 +34,7 @@ impl Uri {
             #[cfg(feature = "json")]
             "data:application/json" => Self::buffer(Format::Json, next),
             #[cfg(feature = "http")]
-            "http" | "https" => {
-                Self::Http(url::Url::parse(uri).map_err(|err| Error::message(err.to_string()))?)
-            }
+            "http" | "https" => Self::Http(url::Url::parse(uri).map_err(|err| Error::message(err.to_string()))?),
             _ => return Err(Error::message("[resource::uri] unknown scheme")),
         })
     }
@@ -60,6 +58,14 @@ impl Uri {
             Self::Buffer(format, _) => *format,
             _ => Format::from_ext(self.ext().unwrap_or("unknown")),
         }
+    }
+}
+
+impl std::str::FromStr for Uri {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::parse(s)
     }
 }
 

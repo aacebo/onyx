@@ -128,10 +128,7 @@ mod tests {
     fn parse_empty_segments() {
         for input in ["/name", "group/", "/", ""] {
             let err = ModelId::from_str(input).expect_err("should fail");
-            assert!(
-                matches!(err, Error::Message(_)),
-                "expected Parse error for {input:?}"
-            );
+            assert!(matches!(err, Error::Message(_)), "expected Parse error for {input:?}");
         }
     }
 
@@ -151,11 +148,6 @@ mod tests {
         let back: ModelId = serde_json::from_str(&json).unwrap();
         assert_eq!(back, id);
 
-        assert_eq!(
-            serde_json::from_str::<ModelId>("\"nogroup\"")
-                .unwrap()
-                .to_string(),
-            "nogroup"
-        );
+        assert_eq!(serde_json::from_str::<ModelId>("\"nogroup\"").unwrap().to_string(), "nogroup");
     }
 }

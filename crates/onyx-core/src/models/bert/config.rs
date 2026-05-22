@@ -124,10 +124,7 @@ impl BertConfig {
         self
     }
 
-    pub fn with_position_embedding_type(
-        mut self,
-        position_embedding_type: PositionEmbeddingType,
-    ) -> Self {
+    pub fn with_position_embedding_type(mut self, position_embedding_type: PositionEmbeddingType) -> Self {
         self.position_embedding_type = position_embedding_type;
         self
     }
@@ -144,10 +141,7 @@ mod tests {
         assert_eq!(config.hidden_size, 768);
         assert_eq!(config.num_hidden_layers, 12);
         assert_eq!(config.hidden_act, HiddenAct::Gelu);
-        assert_eq!(
-            config.position_embedding_type,
-            PositionEmbeddingType::Absolute
-        );
+        assert_eq!(config.position_embedding_type, PositionEmbeddingType::Absolute);
     }
 
     #[test]
@@ -161,10 +155,7 @@ mod tests {
         assert_eq!(config.hidden_size, 1024);
         assert_eq!(config.num_hidden_layers, 24);
         assert_eq!(config.model_type, ModelType::Roberta);
-        assert_eq!(
-            config.architectures,
-            vec![ModelArchitecture::BertForSequenceClassification]
-        );
+        assert_eq!(config.architectures, vec![ModelArchitecture::BertForSequenceClassification]);
         // untouched fields keep their defaults
         assert_eq!(config.vocab_size, 30522);
         assert_eq!(config.num_attention_heads, 12);
@@ -216,9 +207,6 @@ mod tests {
         assert_eq!(config.num_attention_heads, 12);
         assert_eq!(config.hidden_act, HiddenAct::Gelu);
         assert_eq!(config.model_type, ModelType::Bert);
-        assert_eq!(
-            config.architectures,
-            vec![ModelArchitecture::BertForMaskedLM]
-        );
+        assert_eq!(config.architectures, vec![ModelArchitecture::BertForMaskedLM]);
     }
 }
