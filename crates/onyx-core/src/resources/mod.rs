@@ -6,10 +6,12 @@ pub use uri::*;
 
 use crate::Error;
 
-pub trait Decode: Sized {
+pub trait Decoder {
     type Error: std::error::Error;
 
-    fn decode(resource: &Resource) -> Result<Self, Self::Error>;
+    fn decode<T>(resource: &Resource) -> Result<T, Self::Error>
+    where
+        T: for<'de> serde::Deserialize<'de>;
 }
 
 pub trait Resolver {

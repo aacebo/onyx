@@ -4,12 +4,6 @@ pub struct BertResourceGroup {
     pub vocab: &'static str,
 }
 
-impl BertResourceGroup {
-    // pub async fn parse_config(&self) -> Result<super::BertConfig, error::ResourceError> {
-    //     Ok(self.config.read().await?)
-    // }
-}
-
 impl Default for BertResourceGroup {
     fn default() -> Self {
         Self {

@@ -7,7 +7,17 @@ pub use architecture::*;
 pub use config::*;
 pub use r#type::*;
 
-use crate::Error;
+use crate::{Error, pipelines};
+
+pub trait ModelResolver {
+    type Error: std::error::Error;
+
+    fn resolve(&self, id: &ModelId) -> Result<Model, Self::Error>;
+}
+
+pub struct Model {
+    _embedder: Box<dyn pipelines::Embedder>,
+}
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct ModelId {

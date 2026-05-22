@@ -6,11 +6,6 @@ pub use resource::*;
 
 use crate::Tensor;
 
-pub trait BertModel {
-    type Config;
-    type Error;
-}
-
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct BertInput {
     pub input_ids: Tensor,

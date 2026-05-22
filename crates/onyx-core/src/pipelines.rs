@@ -8,7 +8,10 @@ pub trait Pipeline: Send + Sync {}
 /// Produces dense embeddings for input texts.
 pub trait Embedder: Pipeline {
     /// Embed each input text, returning one vector per input.
-    fn embed(&self, texts: &[&str]) -> impl Future<Output = Result<Vec<tensor::FTensor>, Error>>;
+    fn embed(
+        &self,
+        texts: &[&str],
+    ) -> Box<dyn Future<Output = Result<Vec<tensor::FTensor>, Error>>>;
 }
 
 /// Assigns one or more labeled scores to whole input sequences.
