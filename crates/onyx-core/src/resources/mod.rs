@@ -1,8 +1,8 @@
 mod format;
-mod location;
+mod uri;
 
 pub use format::*;
-pub use location::*;
+pub use uri::*;
 
 use crate::Error;
 
@@ -17,34 +17,34 @@ pub trait Resolver {
 
     /// resolves a resource and returns
     /// its on-disk path.
-    fn resolve(&self, location: &Location) -> impl Future<Output = Result<Resource, Self::Error>>;
+    fn resolve(&self, uri: &Uri) -> impl Future<Output = Result<Resource, Self::Error>>;
 }
 
 #[derive(Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Resource {
-    pub path: std::path::PathBuf,
+    pub path: Option<std::path::PathBuf>,
     pub format: Format,
-    pub location: Location,
+    pub uri: Uri,
 }
 
 impl Resource {
     pub fn from_uri(uri: &str) -> Result<Self, Error> {
-        let location = Location::parse(uri)?;
-        Ok(Self::new(location))
+        let ur = Uri::parse(uri)?;
+        Ok(Self::new(ur))
     }
 
-    pub fn new(location: Location) -> Self {
-        let format = location.format();
+    pub fn new(uri: Uri) -> Self {
+        let format = uri.format();
 
         Self {
-            path: std::env::temp_dir(),
+            path: uri.name().map(|v| std::env::temp_dir().join(v)),
             format,
-            location,
+            uri,
         }
     }
 
-    pub fn with_path(mut self, path: std::path::PathBuf) -> Self {
-        self.path = path;
+    pub fn with_directory(mut self, path: std::path::PathBuf) -> Self {
+        self.path = self.uri.name().map(|v| path.join(v));
         self
     }
 
