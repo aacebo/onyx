@@ -16,7 +16,7 @@ impl TokioResourceResolver {
     }
 }
 
-impl resources::Resolver for TokioResourceResolver {
+impl resources::net::Resolver for TokioResourceResolver {
     type Error = tokio::io::Error;
 
     async fn resolve(&self, uri: &resources::Uri) -> Result<resources::Resource, Self::Error> {

@@ -1,4 +1,5 @@
 pub mod error;
+pub(crate) mod internal;
 pub mod models;
 pub mod pipelines;
 pub mod resources;

@@ -105,8 +105,9 @@ impl<'de> serde::Deserialize<'de> for ModelId {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::str::FromStr;
+
+    use super::*;
 
     #[test]
     fn parse_valid() {

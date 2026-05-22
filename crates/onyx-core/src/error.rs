@@ -1,6 +1,6 @@
 pub enum Error {
     Message(String),
-    Source(Box<dyn std::error::Error>),
+    Source(Box<dyn std::error::Error + Send + Sync + 'static>),
 }
 
 impl Error {
@@ -8,8 +8,8 @@ impl Error {
         Self::Message(msg.to_string())
     }
 
-    pub fn source(source: impl std::error::Error + 'static) -> Self {
-        Self::Source(Box::new(source))
+    pub fn source(source: impl Into<Box<dyn std::error::Error + Send + Sync>>) -> Self {
+        Self::Source(source.into())
     }
 }
 

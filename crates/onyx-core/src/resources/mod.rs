@@ -1,26 +1,12 @@
 mod format;
+pub mod io;
+pub mod net;
 mod uri;
 
 pub use format::*;
 pub use uri::*;
 
 use crate::Error;
-
-pub trait Decoder {
-    type Error: std::error::Error;
-
-    fn decode<T>(resource: &Resource) -> Result<T, Self::Error>
-    where
-        T: for<'de> serde::Deserialize<'de>;
-}
-
-pub trait Resolver {
-    type Error: std::error::Error;
-
-    /// resolves a resource and returns
-    /// its on-disk path.
-    fn resolve(&self, uri: &Uri) -> impl Future<Output = Result<Resource, Self::Error>>;
-}
 
 #[derive(Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Resource {
