@@ -42,6 +42,16 @@ pub struct BertModel {
     tokenizer_config: BertTokenizerConfig,
 }
 
+impl crate::models::Forward for BertModel {
+    type Input = BertInput;
+    type Output = BertOutput;
+    type Error = Error;
+
+    async fn forward(&self, _input: Self::Input) -> Result<Self::Output, Self::Error> {
+        Err(Error::message("BertModel::forward not yet implemented"))
+    }
+}
+
 pub struct BertModelBuilder {
     resources: BertResourceConfig,
     reader: Arc<dyn resources::io::internal::AnyReader>,

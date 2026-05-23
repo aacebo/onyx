@@ -7,6 +7,7 @@ pub mod tensor;
 pub mod tokens;
 
 pub use error::Error;
+pub use models::Model;
 pub use pipelines::Pipeline;
 pub use resources::Resource;
 pub use tensor::Tensor;
