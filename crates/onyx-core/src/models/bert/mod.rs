@@ -1,11 +1,13 @@
 mod config;
 mod resource;
+mod tokenizer_config;
 mod types;
 
 use std::sync::Arc;
 
 pub use config::*;
 pub use resource::*;
+pub use tokenizer_config::*;
 pub use types::*;
 
 use crate::{Error, Resource, Tensor, resources};
@@ -37,7 +39,7 @@ pub struct BertModel {
     vocab: Resource,
 
     #[allow(unused)]
-    tokenizer_config: Resource,
+    tokenizer_config: BertTokenizerConfig,
 }
 
 pub struct BertModelBuilder {
@@ -80,15 +82,20 @@ impl BertModelBuilder {
             }
         };
 
+        let tokenizer_config = match self.resources.tokenizer_config {
+            UriOrTokenizerConfig::Config(v) => v,
+            UriOrTokenizerConfig::Uri(uri) => {
+                let resource = self.resolver.resolve(&uri).await.map_err(Error::source)?;
+                let bytes = self.reader.read(&resource).await.map_err(Error::source)?;
+                resource.format.decode(&bytes)?
+            }
+        };
+
         Ok(BertModel {
             config,
             weights: self.resolver.resolve(&self.resources.weights).await.map_err(Error::source)?,
             vocab: self.resolver.resolve(&self.resources.vocab).await.map_err(Error::source)?,
-            tokenizer_config: self
-                .resolver
-                .resolve(&self.resources.tokenizer_config)
-                .await
-                .map_err(Error::source)?,
+            tokenizer_config,
         })
     }
 }

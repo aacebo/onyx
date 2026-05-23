@@ -1,9 +1,8 @@
-use crate::models::{HiddenAct, ModelArchitecture, ModelType, PositionEmbeddingType};
+use crate::models::{HiddenAct, ModelArchitecture, PositionEmbeddingType};
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
 pub struct BertConfig {
-    pub model_type: ModelType,
     pub architectures: Vec<ModelArchitecture>,
     pub vocab_size: usize,
     pub hidden_size: usize,
@@ -24,7 +23,6 @@ pub struct BertConfig {
 impl Default for BertConfig {
     fn default() -> Self {
         Self {
-            model_type: ModelType::Bert,
             architectures: Vec::new(),
             vocab_size: 30522,
             hidden_size: 768,
@@ -47,11 +45,6 @@ impl Default for BertConfig {
 impl BertConfig {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    pub fn with_model_type(mut self, model_type: ModelType) -> Self {
-        self.model_type = model_type;
-        self
     }
 
     pub fn with_architectures(mut self, architectures: Vec<ModelArchitecture>) -> Self {
@@ -149,12 +142,10 @@ mod tests {
         let config = BertConfig::default()
             .with_hidden_size(1024)
             .with_num_hidden_layers(24)
-            .with_model_type(ModelType::Roberta)
             .with_architectures(vec![ModelArchitecture::BertForSequenceClassification]);
 
         assert_eq!(config.hidden_size, 1024);
         assert_eq!(config.num_hidden_layers, 24);
-        assert_eq!(config.model_type, ModelType::Roberta);
         assert_eq!(config.architectures, vec![ModelArchitecture::BertForSequenceClassification]);
         // untouched fields keep their defaults
         assert_eq!(config.vocab_size, 30522);
@@ -206,7 +197,6 @@ mod tests {
         assert_eq!(config.hidden_size, 768);
         assert_eq!(config.num_attention_heads, 12);
         assert_eq!(config.hidden_act, HiddenAct::Gelu);
-        assert_eq!(config.model_type, ModelType::Bert);
         assert_eq!(config.architectures, vec![ModelArchitecture::BertForMaskedLM]);
     }
 }

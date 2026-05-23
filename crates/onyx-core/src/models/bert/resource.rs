@@ -4,7 +4,7 @@ pub struct BertResourceConfig {
     pub config: UriOrConfig,
     pub weights: resources::Uri,
     pub vocab: resources::Uri,
-    pub tokenizer_config: resources::Uri,
+    pub tokenizer_config: UriOrTokenizerConfig,
 }
 
 impl Default for BertResourceConfig {
@@ -27,8 +27,9 @@ impl BertResourceConfig {
                 .parse()
                 .unwrap(),
             tokenizer_config: "https://huggingface.co/google-bert/bert-base-uncased/resolve/main/tokenizer_config.json"
-                .parse()
-                .unwrap(),
+                .parse::<resources::Uri>()
+                .unwrap()
+                .into(),
         }
     }
 
@@ -45,8 +46,9 @@ impl BertResourceConfig {
                 .parse()
                 .unwrap(),
             tokenizer_config: "https://huggingface.co/google-bert/bert-base-cased/resolve/main/tokenizer_config.json"
-                .parse()
-                .unwrap(),
+                .parse::<resources::Uri>()
+                .unwrap()
+                .into(),
         }
     }
 
@@ -63,8 +65,9 @@ impl BertResourceConfig {
                 .parse()
                 .unwrap(),
             tokenizer_config: "https://huggingface.co/google-bert/bert-large-uncased/resolve/main/tokenizer_config.json"
-                .parse()
-                .unwrap(),
+                .parse::<resources::Uri>()
+                .unwrap()
+                .into(),
         }
     }
 
@@ -81,8 +84,9 @@ impl BertResourceConfig {
                 .parse()
                 .unwrap(),
             tokenizer_config: "https://huggingface.co/google-bert/bert-large-cased/resolve/main/tokenizer_config.json"
-                .parse()
-                .unwrap(),
+                .parse::<resources::Uri>()
+                .unwrap()
+                .into(),
         }
     }
 
@@ -99,8 +103,9 @@ impl BertResourceConfig {
                 .parse()
                 .unwrap(),
             tokenizer_config: "https://huggingface.co/google-bert/bert-base-chinese/resolve/main/tokenizer_config.json"
-                .parse()
-                .unwrap(),
+                .parse::<resources::Uri>()
+                .unwrap()
+                .into(),
         }
     }
 
@@ -118,8 +123,9 @@ impl BertResourceConfig {
                 .unwrap(),
             tokenizer_config:
                 "https://huggingface.co/google-bert/bert-base-multilingual-cased/resolve/main/tokenizer_config.json"
-                    .parse()
-                    .unwrap(),
+                    .parse::<resources::Uri>()
+                    .unwrap()
+                    .into(),
         }
     }
 
@@ -137,8 +143,9 @@ impl BertResourceConfig {
                 .unwrap(),
             tokenizer_config:
                 "https://huggingface.co/google-bert/bert-large-uncased-whole-word-masking/resolve/main/tokenizer_config.json"
-                    .parse()
-                    .unwrap(),
+                    .parse::<resources::Uri>()
+                    .unwrap()
+                    .into(),
         }
     }
 
@@ -156,8 +163,9 @@ impl BertResourceConfig {
                 .unwrap(),
             tokenizer_config:
                 "https://huggingface.co/google-bert/bert-large-cased-whole-word-masking/resolve/main/tokenizer_config.json"
-                    .parse()
-                    .unwrap(),
+                    .parse::<resources::Uri>()
+                    .unwrap()
+                    .into(),
         }
     }
 }

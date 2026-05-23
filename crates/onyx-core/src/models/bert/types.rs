@@ -17,3 +17,21 @@ impl From<BertConfig> for UriOrConfig {
         Self::Config(value)
     }
 }
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub enum UriOrTokenizerConfig {
+    Uri(resources::Uri),
+    Config(BertTokenizerConfig),
+}
+
+impl From<resources::Uri> for UriOrTokenizerConfig {
+    fn from(value: resources::Uri) -> Self {
+        Self::Uri(value)
+    }
+}
+
+impl From<BertTokenizerConfig> for UriOrTokenizerConfig {
+    fn from(value: BertTokenizerConfig) -> Self {
+        Self::Config(value)
+    }
+}

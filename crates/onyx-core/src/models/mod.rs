@@ -1,22 +1,20 @@
 mod architecture;
 pub mod bert;
 mod config;
-mod r#type;
+mod tokenizer_config;
+mod types;
 
 pub use architecture::*;
 pub use config::*;
-pub use r#type::*;
+pub use tokenizer_config::*;
+pub use types::*;
 
-use crate::{Error, pipelines};
+use crate::Error;
 
 pub trait ModelResolver {
     type Error: std::error::Error;
 
     fn resolve(&self, id: &ModelId) -> Result<Model, Self::Error>;
-}
-
-pub struct Model {
-    _embedder: Box<dyn pipelines::Embedder>,
 }
 
 #[derive(Clone, PartialEq, Eq)]
@@ -101,6 +99,10 @@ impl<'de> serde::Deserialize<'de> for ModelId {
         let value = String::deserialize(deserializer)?;
         Self::from_str(&value).map_err(serde::de::Error::custom)
     }
+}
+
+pub enum Model {
+    Bert(bert::BertModel),
 }
 
 #[cfg(test)]
