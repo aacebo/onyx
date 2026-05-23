@@ -1,12 +1,14 @@
 mod config;
 mod resource;
+mod types;
 
 use std::sync::Arc;
 
 pub use config::*;
 pub use resource::*;
+pub use types::*;
 
-use crate::{Error, Tensor, resources};
+use crate::{Error, Resource, Tensor, resources};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct BertInput {
@@ -27,22 +29,19 @@ pub struct BertOutput {
 pub struct BertModel {
     #[allow(unused)]
     config: BertConfig,
-}
 
-impl BertModel {
-    pub fn from_config(config: impl Into<BertConfig>) -> Self {
-        Self { config: config.into() }
-    }
-}
+    #[allow(unused)]
+    weights: Resource,
 
-impl From<BertConfig> for BertModel {
-    fn from(value: BertConfig) -> Self {
-        Self::from_config(value)
-    }
+    #[allow(unused)]
+    vocab: Resource,
+
+    #[allow(unused)]
+    tokenizer_config: Resource,
 }
 
 pub struct BertModelBuilder {
-    resources: BertResourceGroup,
+    resources: BertResourceConfig,
     reader: Arc<dyn resources::io::internal::AnyReader>,
     resolver: Arc<dyn resources::net::internal::AnyResolver>,
 }
@@ -50,13 +49,13 @@ pub struct BertModelBuilder {
 impl BertModelBuilder {
     pub fn new() -> Self {
         Self {
-            resources: BertResourceGroup::default(),
+            resources: BertResourceConfig::default(),
             reader: Arc::new(resources::io::StdReader::default()),
             resolver: Arc::new(resources::net::StdResolver::default()),
         }
     }
 
-    pub fn resources(mut self, value: BertResourceGroup) -> Self {
+    pub fn resources(mut self, value: BertResourceConfig) -> Self {
         self.resources = value;
         self
     }
@@ -72,9 +71,24 @@ impl BertModelBuilder {
     }
 
     pub async fn build(self) -> Result<BertModel, Error> {
-        let config_resource = self.resolver.resolve(&self.resources.config).await.map_err(Error::source)?;
-        let config_bytes = self.reader.read(&config_resource).await.map_err(Error::source)?;
-        let config: BertConfig = config_resource.format.decode(&config_bytes)?;
-        Ok(BertModel::from_config(config))
+        let config = match self.resources.config {
+            UriOrConfig::Config(v) => v,
+            UriOrConfig::Uri(uri) => {
+                let resource = self.resolver.resolve(&uri).await.map_err(Error::source)?;
+                let bytes = self.reader.read(&resource).await.map_err(Error::source)?;
+                resource.format.decode(&bytes)?
+            }
+        };
+
+        Ok(BertModel {
+            config,
+            weights: self.resolver.resolve(&self.resources.weights).await.map_err(Error::source)?,
+            vocab: self.resolver.resolve(&self.resources.vocab).await.map_err(Error::source)?,
+            tokenizer_config: self
+                .resolver
+                .resolve(&self.resources.tokenizer_config)
+                .await
+                .map_err(Error::source)?,
+        })
     }
 }

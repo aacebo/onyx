@@ -1,11 +1,11 @@
-use onyx_core::resources;
+use onyx_core::resources::*;
 
-#[derive(Default)]
-pub struct TokioResourceResolver {
+#[derive(Debug, Default, Clone)]
+pub struct TokioResolver {
     dir: Option<std::path::PathBuf>,
 }
 
-impl TokioResourceResolver {
+impl TokioResolver {
     pub fn new() -> Self {
         Self::default()
     }
@@ -16,11 +16,11 @@ impl TokioResourceResolver {
     }
 }
 
-impl resources::net::Resolver for TokioResourceResolver {
+impl net::Resolver for TokioResolver {
     type Error = tokio::io::Error;
 
-    async fn resolve(&self, uri: &resources::Uri) -> Result<resources::Resource, Self::Error> {
-        let mut resource = resources::Resource::new(uri.clone());
+    async fn resolve(&self, uri: &Uri) -> Result<Resource, Self::Error> {
+        let mut resource = Resource::new(uri.clone());
 
         if let Some(path) = &self.dir {
             resource = resource.with_directory(path.clone());
@@ -37,16 +37,16 @@ impl resources::net::Resolver for TokioResourceResolver {
         }
 
         match &resource.uri {
-            resources::Uri::Local(src) => {
+            Uri::Local(src) => {
                 tokio::fs::copy(src, path).await?;
                 Ok(resource)
             }
-            resources::Uri::Buffer(_, data) => {
+            Uri::Buffer(_, data) => {
                 tokio::fs::write(&path, data).await?;
                 Ok(resource)
             }
             #[cfg(feature = "http")]
-            resources::Uri::Http(url) => {
+            Uri::Http(url) => {
                 let mut res = reqwest::get(url.as_str())
                     .await
                     .map_err(|err| tokio::io::Error::other(err))?
