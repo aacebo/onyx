@@ -6,8 +6,6 @@ mod uri;
 pub use format::*;
 pub use uri::*;
 
-use crate::Error;
-
 #[derive(Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Resource {
     pub path: Option<std::path::PathBuf>,
@@ -16,12 +14,7 @@ pub struct Resource {
 }
 
 impl Resource {
-    pub fn from_uri(uri: &str) -> Result<Self, Error> {
-        let ur = Uri::parse(uri)?;
-        Ok(Self::new(ur))
-    }
-
-    pub fn new(uri: Uri) -> Self {
+    pub fn from_uri(uri: Uri) -> Self {
         let format = uri.format();
 
         Self {

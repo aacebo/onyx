@@ -29,7 +29,7 @@ impl Resolver for StdResolver {
     type Error = Error;
 
     async fn resolve(&self, uri: &Uri) -> Result<Resource, Self::Error> {
-        let mut resource = Resource::new(uri.clone());
+        let mut resource = Resource::from_uri(uri.clone());
 
         if let Some(path) = &self.dir {
             resource = resource.with_directory(path.clone());
