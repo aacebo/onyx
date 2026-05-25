@@ -1,14 +1,12 @@
 pub mod error;
 pub(crate) mod internal;
 pub mod models;
-pub mod pipelines;
 pub mod resources;
 pub mod tensor;
 pub mod tokens;
 
 pub use error::Error;
 pub use models::Model;
-pub use pipelines::Pipeline;
 pub use resources::Resource;
 pub use tensor::Tensor;
 
