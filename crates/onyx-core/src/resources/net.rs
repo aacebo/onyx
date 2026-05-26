@@ -1,12 +1,11 @@
 use super::{Resource, Uri};
-use crate::Error;
+use crate::BoxFuture;
+use crate::error::ResolveError;
 
 pub trait Resolver: Send + Sync {
-    type Error: std::error::Error + Send + Sync + 'static;
-
     /// resolves a resource and returns
     /// its on-disk path.
-    fn resolve(&self, uri: &Uri) -> impl Future<Output = Result<Resource, Self::Error>> + Send;
+    fn resolve<'a>(&'a self, uri: &'a Uri) -> BoxFuture<'a, crate::error::Result<Resource>>;
 }
 
 #[derive(Default)]
@@ -26,59 +25,36 @@ impl StdResolver {
 }
 
 impl Resolver for StdResolver {
-    type Error = Error;
+    fn resolve<'a>(&'a self, uri: &'a Uri) -> BoxFuture<'a, crate::error::Result<Resource>> {
+        Box::pin(async move {
+            let mut resource = Resource::from_uri(uri.clone());
 
-    async fn resolve(&self, uri: &Uri) -> Result<Resource, Self::Error> {
-        let mut resource = Resource::from_uri(uri.clone());
-
-        if let Some(path) = &self.dir {
-            resource = resource.with_directory(path.clone());
-        }
-
-        let path = if let Some(p) = &resource.path {
-            p
-        } else {
-            return Ok(resource);
-        };
-
-        if std::fs::exists(&path).map_err(Error::source)? {
-            return Ok(resource);
-        }
-
-        match &resource.uri {
-            Uri::Local(src) => {
-                std::fs::copy(src, path).map_err(Error::source)?;
-                Ok(resource)
+            if let Some(path) = &self.dir {
+                resource = resource.with_directory(path.clone());
             }
-            Uri::Buffer(_, data) => {
-                std::fs::write(&path, data).map_err(Error::source)?;
-                Ok(resource)
+
+            let path = if let Some(p) = &resource.path {
+                p
+            } else {
+                return Ok(resource);
+            };
+
+            if std::fs::exists(&path)? {
+                return Ok(resource);
             }
-            #[allow(unreachable_patterns)]
-            v => Err(Error::message(format!("unsupported resource type '{v}'"))),
-        }
-    }
-}
 
-pub(crate) mod internal {
-    use super::*;
-    use crate::internal::BoxFuture;
-
-    pub trait AnyResolver: Send + Sync {
-        fn resolve<'a>(&'a self, uri: &'a Uri) -> BoxFuture<'a, Result<Resource, Box<dyn std::error::Error + Send + Sync>>>;
-    }
-
-    impl<T, E> AnyResolver for T
-    where
-        T: Resolver<Error = E>,
-        E: std::error::Error + Send + Sync + 'static,
-    {
-        fn resolve<'a>(&'a self, uri: &'a Uri) -> BoxFuture<'a, Result<Resource, Box<dyn std::error::Error + Send + Sync>>> {
-            Box::pin(async move {
-                Resolver::resolve(self, uri)
-                    .await
-                    .map_err(|err| Box::new(err) as Box<dyn std::error::Error + Send + Sync>)
-            })
-        }
+            match &resource.uri {
+                Uri::Local(src) => {
+                    std::fs::copy(src, path)?;
+                    Ok(resource)
+                }
+                Uri::Buffer(_, data) => {
+                    std::fs::write(&path, data)?;
+                    Ok(resource)
+                }
+                #[allow(unreachable_patterns)]
+                v => Err(ResolveError::UnsupportedScheme(v.to_string()).into()),
+            }
+        })
     }
 }

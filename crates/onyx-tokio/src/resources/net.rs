@@ -1,3 +1,4 @@
+use onyx_core::BoxFuture;
 use onyx_core::resources::*;
 
 #[derive(Debug, Default, Clone)]
@@ -17,52 +18,56 @@ impl TokioResolver {
 }
 
 impl net::Resolver for TokioResolver {
-    type Error = tokio::io::Error;
+    fn resolve<'a>(&'a self, uri: &'a Uri) -> BoxFuture<'a, onyx_core::error::Result<Resource>> {
+        Box::pin(async move {
+            let mut resource = Resource::from_uri(uri.clone());
 
-    async fn resolve(&self, uri: &Uri) -> Result<Resource, Self::Error> {
-        let mut resource = Resource::from_uri(uri.clone());
-
-        if let Some(path) = &self.dir {
-            resource = resource.with_directory(path.clone());
-        }
-
-        let path = if let Some(p) = &resource.path {
-            p
-        } else {
-            return Ok(resource);
-        };
-
-        if tokio::fs::try_exists(&path).await? {
-            return Ok(resource);
-        }
-
-        match &resource.uri {
-            Uri::Local(src) => {
-                tokio::fs::copy(src, path).await?;
-                Ok(resource)
+            if let Some(path) = &self.dir {
+                resource = resource.with_directory(path.clone());
             }
-            Uri::Buffer(_, data) => {
-                tokio::fs::write(&path, data).await?;
-                Ok(resource)
+
+            let path = if let Some(p) = &resource.path {
+                p
+            } else {
+                return Ok(resource);
+            };
+
+            if tokio::fs::try_exists(&path).await? {
+                return Ok(resource);
             }
-            #[cfg(feature = "http")]
-            Uri::Http(url) => {
-                let mut res = reqwest::get(url.as_str())
-                    .await
-                    .map_err(|err| tokio::io::Error::other(err))?
-                    .error_for_status()
-                    .map_err(|err| tokio::io::Error::other(err))?;
 
-                let mut file = tokio::fs::File::create(path).await?;
-
-                while let Some(mut chunk) = res.chunk().await.map_err(|err| tokio::io::Error::other(err))? {
-                    use tokio::io::AsyncWriteExt;
-
-                    file.write_all_buf(&mut chunk).await?;
+            match &resource.uri {
+                Uri::Local(src) => {
+                    tokio::fs::copy(src, path).await?;
+                    Ok(resource)
                 }
+                Uri::Buffer(_, data) => {
+                    tokio::fs::write(&path, data).await?;
+                    Ok(resource)
+                }
+                #[cfg(feature = "http")]
+                Uri::Http(url) => {
+                    let mut res = reqwest::get(url.as_str())
+                        .await
+                        .map_err(|err| onyx_core::error::ResolveError::Unavailable(err.to_string()))?
+                        .error_for_status()
+                        .map_err(|err| onyx_core::error::ResolveError::Unavailable(err.to_string()))?;
 
-                Ok(resource)
+                    let mut file = tokio::fs::File::create(path).await?;
+
+                    while let Some(mut chunk) = res
+                        .chunk()
+                        .await
+                        .map_err(|err| onyx_core::error::ResolveError::Unavailable(err.to_string()))?
+                    {
+                        use tokio::io::AsyncWriteExt;
+
+                        file.write_all_buf(&mut chunk).await?;
+                    }
+
+                    Ok(resource)
+                }
             }
-        }
+        })
     }
 }

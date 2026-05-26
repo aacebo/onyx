@@ -1,4 +1,4 @@
-use crate::Error;
+use crate::error::ParseError;
 use crate::resources::Format;
 
 #[derive(Clone, PartialEq, Eq)]
@@ -23,10 +23,8 @@ impl Uri {
         Self::Http(url)
     }
 
-    pub fn parse(uri: &str) -> Result<Self, Error> {
-        let (scheme, next) = uri
-            .split_once("://")
-            .ok_or(Error::message("[resource::uri] must have a scheme"))?;
+    pub fn parse(uri: &str) -> crate::error::Result<Self> {
+        let (scheme, next) = uri.split_once("://").ok_or_else(|| ParseError::InvalidUri(uri.to_string()))?;
 
         Ok(match scheme {
             "file" => Self::local(std::path::PathBuf::from(next)),
@@ -35,8 +33,8 @@ impl Uri {
             #[cfg(feature = "json")]
             "data:application/json" => Self::buffer(Format::Json, next),
             #[cfg(feature = "http")]
-            "http" | "https" => Self::Http(url::Url::parse(uri).map_err(|err| Error::message(err.to_string()))?),
-            _ => return Err(Error::message("[resource::uri] unknown scheme")),
+            "http" | "https" => Self::Http(url::Url::parse(uri)?),
+            _ => return Err(ParseError::InvalidUri(uri.to_string()).into()),
         })
     }
 
@@ -63,7 +61,7 @@ impl Uri {
 }
 
 impl std::str::FromStr for Uri {
-    type Err = Error;
+    type Err = crate::OnyxError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Self::parse(s)

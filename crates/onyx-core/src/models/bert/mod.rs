@@ -3,14 +3,12 @@ mod resource;
 mod tokenizer_config;
 mod types;
 
-use std::sync::Arc;
-
 pub use config::*;
 pub use resource::*;
 pub use tokenizer_config::*;
 pub use types::*;
 
-use crate::{Error, Resource, Tensor, resources};
+use crate::{Tensor, resources};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct BertInput {
@@ -28,77 +26,16 @@ pub struct BertOutput {
     pub attentions: Option<Vec<Tensor>>,
 }
 
-pub struct BertModel {
-    pub config: BertConfig,
-    pub weights: Resource,
-    pub vocab: Resource,
-    pub tokenizer_config: BertTokenizerConfig,
+pub trait BertModel: Send + Sync {
+    fn infer(&self, input: BertInput) -> impl Future<Output = crate::error::Result<BertOutput>> + Send;
 }
 
-impl crate::models::Forward for BertModel {
-    type Input = BertInput;
-    type Output = BertOutput;
-    type Error = Error;
-
-    async fn forward(&self, _input: Self::Input) -> Result<Self::Output, Self::Error> {
-        Err(Error::message("BertModel::forward not yet implemented"))
-    }
+pub trait AnyBertModel: Send + Sync {
+    fn infer<'a>(&'a self, input: BertInput) -> crate::BoxFuture<'a, crate::error::Result<BertOutput>>;
 }
 
-pub struct BertModelBuilder {
-    resources: BertResourceConfig,
-    reader: Arc<dyn resources::io::internal::AnyReader>,
-    resolver: Arc<dyn resources::net::internal::AnyResolver>,
-}
-
-impl BertModelBuilder {
-    pub fn new() -> Self {
-        Self {
-            resources: BertResourceConfig::default(),
-            reader: Arc::new(resources::io::StdReader::default()),
-            resolver: Arc::new(resources::net::StdResolver::default()),
-        }
-    }
-
-    pub fn resources(mut self, value: BertResourceConfig) -> Self {
-        self.resources = value;
-        self
-    }
-
-    pub fn reader(mut self, value: impl resources::io::Reader + 'static) -> Self {
-        self.reader = Arc::new(value);
-        self
-    }
-
-    pub fn resolver(mut self, value: impl resources::net::Resolver + 'static) -> Self {
-        self.resolver = Arc::new(value);
-        self
-    }
-
-    pub async fn build(self) -> Result<BertModel, Error> {
-        let config = match self.resources.config {
-            UriOrConfig::Config(v) => v,
-            UriOrConfig::Uri(uri) => {
-                let resource = self.resolver.resolve(&uri).await.map_err(Error::source)?;
-                let bytes = self.reader.read(&resource).await.map_err(Error::source)?;
-                resource.format.decode(&bytes)?
-            }
-        };
-
-        let tokenizer_config = match self.resources.tokenizer_config {
-            UriOrTokenizerConfig::Config(v) => v,
-            UriOrTokenizerConfig::Uri(uri) => {
-                let resource = self.resolver.resolve(&uri).await.map_err(Error::source)?;
-                let bytes = self.reader.read(&resource).await.map_err(Error::source)?;
-                resource.format.decode(&bytes)?
-            }
-        };
-
-        Ok(BertModel {
-            config,
-            weights: self.resolver.resolve(&self.resources.weights).await.map_err(Error::source)?,
-            vocab: self.resolver.resolve(&self.resources.vocab).await.map_err(Error::source)?,
-            tokenizer_config,
-        })
+impl<T: BertModel> AnyBertModel for T {
+    fn infer<'a>(&'a self, input: BertInput) -> crate::BoxFuture<'a, crate::error::Result<BertOutput>> {
+        Box::pin(async move { BertModel::infer(self, input).await })
     }
 }

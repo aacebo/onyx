@@ -7,12 +7,10 @@ pub use architecture::*;
 pub use config::*;
 pub use types::*;
 
-use crate::Error;
+use crate::error::{InferenceError, ParseError};
 
 pub trait ModelResolver: Send + Sync {
-    type Error: std::error::Error + Send + Sync + 'static;
-
-    fn resolve(&self, id: &ModelId) -> Result<Model, Self::Error>;
+    fn resolve(&self, id: &ModelId) -> crate::error::Result<Model>;
 }
 
 #[derive(Clone, PartialEq, Eq)]
@@ -32,17 +30,17 @@ impl ModelId {
 }
 
 impl std::str::FromStr for ModelId {
-    type Err = Error;
+    type Err = crate::OnyxError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.contains("/") {
             let (group, name) = match s.split_once("/") {
-                None => return Err(Error::message("invalid model id format")),
+                None => return Err(ParseError::InvalidModelId(s.to_string()).into()),
                 Some(v) => v,
             };
 
             if group.is_empty() || name.is_empty() {
-                return Err(Error::message("invalid model id format"));
+                return Err(ParseError::InvalidModelId(s.to_string()).into());
             }
 
             return Ok(Self {
@@ -52,7 +50,7 @@ impl std::str::FromStr for ModelId {
         }
 
         if s.is_empty() {
-            return Err(Error::message("invalid model id format"));
+            return Err(ParseError::InvalidModelId(s.to_string()).into());
         }
 
         Ok(Self {
@@ -102,32 +100,8 @@ impl<'de> serde::Deserialize<'de> for ModelId {
 pub trait Forward: Send + Sync {
     type Input;
     type Output;
-    type Error: std::error::Error + Send + Sync + 'static;
 
-    fn forward(&self, input: Self::Input) -> impl Future<Output = Result<Self::Output, Self::Error>> + Send;
-}
-
-pub trait ForwardT: Send + Sync {
-    fn forward_t<'a>(
-        &'a self,
-        input: ModelInput,
-    ) -> crate::internal::BoxFuture<'a, Result<ModelOutput, Box<dyn std::error::Error + Send + Sync>>>;
-}
-
-impl<T> ForwardT for T
-where
-    T: Forward<Input = ModelInput, Output = ModelOutput>,
-{
-    fn forward_t<'a>(
-        &'a self,
-        input: ModelInput,
-    ) -> crate::internal::BoxFuture<'a, Result<ModelOutput, Box<dyn std::error::Error + Send + Sync>>> {
-        Box::pin(async move {
-            Forward::forward(self, input)
-                .await
-                .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)
-        })
-    }
+    fn forward<'a>(&'a self, input: Self::Input) -> crate::BoxFuture<'a, crate::error::Result<Self::Output>>;
 }
 
 pub enum ModelInput {
@@ -151,8 +125,8 @@ impl From<bert::BertOutput> for ModelOutput {
 }
 
 pub enum Model {
-    Bert(bert::BertModel),
-    Custom(std::sync::Arc<dyn ForwardT>),
+    Bert(std::sync::Arc<dyn bert::AnyBertModel>),
+    Custom(std::sync::Arc<dyn Forward<Input = ModelInput, Output = ModelOutput>>),
 }
 
 impl Model {
@@ -160,29 +134,30 @@ impl Model {
     where
         T: Forward<Input = ModelInput, Output = ModelOutput> + 'static,
     {
-        Self::Custom(std::sync::Arc::new(value))
+        Self::Custom(std::sync::Arc::new(value) as std::sync::Arc<dyn Forward<Input = ModelInput, Output = ModelOutput>>)
     }
 }
 
-impl From<bert::BertModel> for Model {
-    fn from(value: bert::BertModel) -> Self {
-        Self::Bert(value)
+impl<T: bert::BertModel + 'static> From<T> for Model {
+    fn from(value: T) -> Self {
+        Self::Bert(std::sync::Arc::new(value))
     }
 }
 
 impl Forward for Model {
     type Input = ModelInput;
     type Output = ModelOutput;
-    type Error = Error;
 
-    async fn forward(&self, input: Self::Input) -> Result<Self::Output, Self::Error> {
-        match (self, input) {
-            (Model::Bert(m), ModelInput::Bert(i)) => m.forward(i).await.map(ModelOutput::Bert),
-            (Model::Custom(m), input) => m.forward_t(input).await.map_err(Error::source),
-            // TODO: add mismatch test when second model family lands
-            #[allow(unreachable_patterns)]
-            _ => Err(Error::message("Model/ModelInput variant mismatch")),
-        }
+    fn forward<'a>(&'a self, input: Self::Input) -> crate::BoxFuture<'a, crate::error::Result<Self::Output>> {
+        Box::pin(async move {
+            match (self, input) {
+                (Model::Bert(m), ModelInput::Bert(i)) => m.infer(i).await.map(ModelOutput::Bert),
+                (Model::Custom(m), input) => m.forward(input).await,
+                // TODO: add mismatch test when second model family lands
+                #[allow(unreachable_patterns)]
+                _ => Err(InferenceError::InvalidInput("Model/ModelInput variant mismatch".into()).into()),
+            }
+        })
     }
 }
 
@@ -210,9 +185,13 @@ mod tests {
 
     #[test]
     fn parse_empty_segments() {
+        use crate::OnyxError;
         for input in ["/name", "group/", "/", ""] {
             let err = ModelId::from_str(input).expect_err("should fail");
-            assert!(matches!(err, Error::Message(_)), "expected Parse error for {input:?}");
+            assert!(
+                matches!(err, OnyxError::Parse(ParseError::InvalidModelId(_))),
+                "expected Parse error for {input:?}",
+            );
         }
     }
 
@@ -260,12 +239,13 @@ mod tests {
     impl Forward for Echo {
         type Input = ModelInput;
         type Output = ModelOutput;
-        type Error = Error;
 
-        async fn forward(&self, input: Self::Input) -> Result<Self::Output, Self::Error> {
-            match input {
-                ModelInput::Bert(_) => Ok(ModelOutput::Bert(dummy_bert_output())),
-            }
+        fn forward<'a>(&'a self, input: Self::Input) -> crate::BoxFuture<'a, crate::error::Result<Self::Output>> {
+            Box::pin(async move {
+                match input {
+                    ModelInput::Bert(_) => Ok(ModelOutput::Bert(dummy_bert_output())),
+                }
+            })
         }
     }
 
@@ -298,7 +278,7 @@ mod tests {
 
     fn _accepts_forward<F>(_: F)
     where
-        F: Forward<Input = ModelInput, Output = ModelOutput, Error = Error>,
+        F: Forward<Input = ModelInput, Output = ModelOutput>,
     {
     }
 
