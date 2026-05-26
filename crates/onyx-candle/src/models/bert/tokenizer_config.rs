@@ -188,7 +188,6 @@ mod tests {
 
     #[test]
     fn deserialize_full_slow_tokenizer() {
-        // shape based on sentence-transformers/all-MiniLM-L6-v2/tokenizer_config.json
         let json = r#"{
             "do_lower_case": true,
             "unk_token": "[UNK]",
@@ -211,7 +210,6 @@ mod tests {
 
     #[test]
     fn deserialize_mask_as_added_token_object() {
-        // ModernBERT-style: [MASK] saved as AddedToken with lstrip: true
         let json = r#"{
             "mask_token": {
                 "content": "[MASK]",
@@ -255,7 +253,6 @@ mod tests {
 
     #[test]
     fn deserialize_with_sides_and_pad_multiple() {
-        // gte-base-en-v1.5 style
         let json = r#"{
             "padding_side": "right",
             "truncation_side": "right",

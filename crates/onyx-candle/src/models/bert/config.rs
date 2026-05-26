@@ -1,4 +1,4 @@
-use crate::models::{HiddenAct, ModelArchitecture, PositionEmbeddingType};
+use onyx_core::models::{HiddenAct, ModelArchitecture, PositionEmbeddingType};
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
@@ -147,7 +147,6 @@ mod tests {
         assert_eq!(config.hidden_size, 1024);
         assert_eq!(config.num_hidden_layers, 24);
         assert_eq!(config.architectures, vec![ModelArchitecture::BertForSequenceClassification]);
-        // untouched fields keep their defaults
         assert_eq!(config.vocab_size, 30522);
         assert_eq!(config.num_attention_heads, 12);
     }
@@ -167,7 +166,6 @@ mod tests {
     fn deserialize_partial() {
         let config: BertConfig = serde_json::from_str(r#"{"hidden_size": 1024}"#).unwrap();
         assert_eq!(config.hidden_size, 1024);
-        // missing keys fall back to defaults
         assert_eq!(config.vocab_size, 30522);
         assert_eq!(config.num_hidden_layers, 12);
     }

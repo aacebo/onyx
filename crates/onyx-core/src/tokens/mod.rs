@@ -1,7 +1,3 @@
-mod config;
-
-pub use config::*;
-
 use crate::Span;
 
 pub trait Token {

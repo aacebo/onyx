@@ -1247,6 +1247,8 @@ version = "0.0.0"
 dependencies = [
  "candle-core",
  "onyx-core",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

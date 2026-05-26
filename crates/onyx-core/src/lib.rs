@@ -5,7 +5,6 @@ pub mod tensor;
 pub mod tokens;
 
 pub use error::{OnyxError, Result};
-pub use models::Model;
 pub use resources::Resource;
 pub use tensor::Tensor;
 

@@ -1,3 +1,5 @@
+use onyx_core::resources;
+
 use super::*;
 
 pub struct BertResourceConfig {
