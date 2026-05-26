@@ -8,7 +8,7 @@ pub use resource::*;
 pub use tokenizer_config::*;
 pub use types::*;
 
-use crate::{Tensor, resources};
+use crate::{BoxFuture, Tensor, resources};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct BertInput {
@@ -27,15 +27,5 @@ pub struct BertOutput {
 }
 
 pub trait BertModel: Send + Sync {
-    fn infer(&self, input: BertInput) -> impl Future<Output = crate::error::Result<BertOutput>> + Send;
-}
-
-pub trait AnyBertModel: Send + Sync {
-    fn infer<'a>(&'a self, input: BertInput) -> crate::BoxFuture<'a, crate::error::Result<BertOutput>>;
-}
-
-impl<T: BertModel> AnyBertModel for T {
-    fn infer<'a>(&'a self, input: BertInput) -> crate::BoxFuture<'a, crate::error::Result<BertOutput>> {
-        Box::pin(async move { BertModel::infer(self, input).await })
-    }
+    fn infer(&self, input: BertInput) -> BoxFuture<'_, crate::error::Result<BertOutput>>;
 }

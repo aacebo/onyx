@@ -125,7 +125,7 @@ impl From<bert::BertOutput> for ModelOutput {
 }
 
 pub enum Model {
-    Bert(std::sync::Arc<dyn bert::AnyBertModel>),
+    Bert(std::sync::Arc<dyn bert::BertModel>),
     Custom(std::sync::Arc<dyn Forward<Input = ModelInput, Output = ModelOutput>>),
 }
 
