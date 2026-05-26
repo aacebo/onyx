@@ -12,6 +12,13 @@ pub trait ModelResolver: Send + Sync {
 }
 */
 
+pub trait Forward: Send + Sync {
+    type Input;
+    type Output;
+
+    fn forward<'a>(&'a self, input: Self::Input) -> crate::BoxFuture<'a, crate::error::Result<Self::Output>>;
+}
+
 #[derive(Clone, PartialEq, Eq)]
 pub struct ModelId {
     group: Option<Box<str>>,
@@ -94,13 +101,6 @@ impl<'de> serde::Deserialize<'de> for ModelId {
         let value = String::deserialize(deserializer)?;
         Self::from_str(&value).map_err(serde::de::Error::custom)
     }
-}
-
-pub trait Forward: Send + Sync {
-    type Input;
-    type Output;
-
-    fn forward<'a>(&'a self, input: Self::Input) -> crate::BoxFuture<'a, crate::error::Result<Self::Output>>;
 }
 
 #[cfg(test)]
