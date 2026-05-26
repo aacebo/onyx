@@ -29,17 +29,10 @@ pub struct BertOutput {
 }
 
 pub struct BertModel {
-    #[allow(unused)]
-    config: BertConfig,
-
-    #[allow(unused)]
-    weights: Resource,
-
-    #[allow(unused)]
-    vocab: Resource,
-
-    #[allow(unused)]
-    tokenizer_config: BertTokenizerConfig,
+    pub config: BertConfig,
+    pub weights: Resource,
+    pub vocab: Resource,
+    pub tokenizer_config: BertTokenizerConfig,
 }
 
 impl crate::models::Forward for BertModel {
