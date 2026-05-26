@@ -1,12 +1,10 @@
 mod architecture;
 pub mod bert;
 mod config;
-mod tokenizer_config;
 mod types;
 
 pub use architecture::*;
 pub use config::*;
-pub use tokenizer_config::*;
 pub use types::*;
 
 use crate::Error;

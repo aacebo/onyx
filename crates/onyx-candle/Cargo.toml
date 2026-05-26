@@ -1,0 +1,19 @@
+[package]
+name = "onyx-candle"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+readme.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lib]
+doctest = false
+
+[features]
+default = []
+
+[dependencies]
+onyx-core = { path = "../onyx-core" }
+candle-core = { version = "0.10" }
