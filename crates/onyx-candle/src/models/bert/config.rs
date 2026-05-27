@@ -1,4 +1,4 @@
-use onyx_core::models::Architecture;
+use onyx_core::model::Architecture;
 
 use crate::models::{HiddenAct, PositionEmbeddingType};
 

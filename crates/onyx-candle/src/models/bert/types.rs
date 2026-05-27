@@ -1,15 +1,15 @@
-use onyx_core::resources;
+use onyx_core::resource;
 
 use super::*;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub enum UriOrConfig {
-    Uri(resources::Uri),
+    Uri(resource::Uri),
     Config(BertConfig),
 }
 
-impl From<resources::Uri> for UriOrConfig {
-    fn from(value: resources::Uri) -> Self {
+impl From<resource::Uri> for UriOrConfig {
+    fn from(value: resource::Uri) -> Self {
         Self::Uri(value)
     }
 }
@@ -22,12 +22,12 @@ impl From<BertConfig> for UriOrConfig {
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub enum UriOrTokenizerConfig {
-    Uri(resources::Uri),
+    Uri(resource::Uri),
     Config(BertTokenizerConfig),
 }
 
-impl From<resources::Uri> for UriOrTokenizerConfig {
-    fn from(value: resources::Uri) -> Self {
+impl From<resource::Uri> for UriOrTokenizerConfig {
+    fn from(value: resource::Uri) -> Self {
         Self::Uri(value)
     }
 }

@@ -1,11 +1,11 @@
 pub mod error;
-pub mod models;
-pub mod resources;
+pub mod model;
+pub mod resource;
 pub mod tensor;
-pub mod tokens;
+pub mod token;
 
 pub use error::{OnyxError, Result};
-pub use resources::Resource;
+pub use resource::Resource;
 pub use tensor::Tensor;
 
 pub type BoxFuture<'a, T> = std::pin::Pin<Box<dyn std::future::Future<Output = T> + Send + 'a>>;

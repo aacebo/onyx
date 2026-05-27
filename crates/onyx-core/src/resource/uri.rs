@@ -1,5 +1,5 @@
 use crate::error::ParseError;
-use crate::resources::Format;
+use crate::resource::Format;
 
 #[derive(Clone, PartialEq, Eq)]
 pub enum Uri {

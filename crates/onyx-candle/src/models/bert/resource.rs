@@ -1,11 +1,11 @@
-use onyx_core::resources;
+use onyx_core::resource;
 
 use super::*;
 
 pub struct BertResourceConfig {
     pub config: UriOrConfig,
-    pub weights: resources::Uri,
-    pub vocab: resources::Uri,
+    pub weights: resource::Uri,
+    pub vocab: resource::Uri,
     pub tokenizer_config: UriOrTokenizerConfig,
 }
 
@@ -20,7 +20,7 @@ impl BertResourceConfig {
     pub fn base_uncased() -> Self {
         Self {
             config: "https://huggingface.co/google-bert/bert-base-uncased/resolve/main/config.json"
-                .parse::<resources::Uri>()
+                .parse::<resource::Uri>()
                 .unwrap()
                 .into(),
             weights: "https://huggingface.co/google-bert/bert-base-uncased/resolve/main/model.safetensors"
@@ -30,7 +30,7 @@ impl BertResourceConfig {
                 .parse()
                 .unwrap(),
             tokenizer_config: "https://huggingface.co/google-bert/bert-base-uncased/resolve/main/tokenizer_config.json"
-                .parse::<resources::Uri>()
+                .parse::<resource::Uri>()
                 .unwrap()
                 .into(),
         }
@@ -40,7 +40,7 @@ impl BertResourceConfig {
     pub fn base_cased() -> Self {
         Self {
             config: "https://huggingface.co/google-bert/bert-base-cased/resolve/main/config.json"
-                .parse::<resources::Uri>()
+                .parse::<resource::Uri>()
                 .unwrap()
                 .into(),
             weights: "https://huggingface.co/google-bert/bert-base-cased/resolve/main/model.safetensors"
@@ -50,7 +50,7 @@ impl BertResourceConfig {
                 .parse()
                 .unwrap(),
             tokenizer_config: "https://huggingface.co/google-bert/bert-base-cased/resolve/main/tokenizer_config.json"
-                .parse::<resources::Uri>()
+                .parse::<resource::Uri>()
                 .unwrap()
                 .into(),
         }
@@ -60,7 +60,7 @@ impl BertResourceConfig {
     pub fn large_uncased() -> Self {
         Self {
             config: "https://huggingface.co/google-bert/bert-large-uncased/resolve/main/config.json"
-                .parse::<resources::Uri>()
+                .parse::<resource::Uri>()
                 .unwrap()
                 .into(),
             weights: "https://huggingface.co/google-bert/bert-large-uncased/resolve/main/model.safetensors"
@@ -70,7 +70,7 @@ impl BertResourceConfig {
                 .parse()
                 .unwrap(),
             tokenizer_config: "https://huggingface.co/google-bert/bert-large-uncased/resolve/main/tokenizer_config.json"
-                .parse::<resources::Uri>()
+                .parse::<resource::Uri>()
                 .unwrap()
                 .into(),
         }
@@ -80,7 +80,7 @@ impl BertResourceConfig {
     pub fn large_cased() -> Self {
         Self {
             config: "https://huggingface.co/google-bert/bert-large-cased/resolve/main/config.json"
-                .parse::<resources::Uri>()
+                .parse::<resource::Uri>()
                 .unwrap()
                 .into(),
             weights: "https://huggingface.co/google-bert/bert-large-cased/resolve/main/model.safetensors"
@@ -90,7 +90,7 @@ impl BertResourceConfig {
                 .parse()
                 .unwrap(),
             tokenizer_config: "https://huggingface.co/google-bert/bert-large-cased/resolve/main/tokenizer_config.json"
-                .parse::<resources::Uri>()
+                .parse::<resource::Uri>()
                 .unwrap()
                 .into(),
         }
@@ -100,7 +100,7 @@ impl BertResourceConfig {
     pub fn base_chinese() -> Self {
         Self {
             config: "https://huggingface.co/google-bert/bert-base-chinese/resolve/main/config.json"
-                .parse::<resources::Uri>()
+                .parse::<resource::Uri>()
                 .unwrap()
                 .into(),
             weights: "https://huggingface.co/google-bert/bert-base-chinese/resolve/main/model.safetensors"
@@ -110,7 +110,7 @@ impl BertResourceConfig {
                 .parse()
                 .unwrap(),
             tokenizer_config: "https://huggingface.co/google-bert/bert-base-chinese/resolve/main/tokenizer_config.json"
-                .parse::<resources::Uri>()
+                .parse::<resource::Uri>()
                 .unwrap()
                 .into(),
         }
@@ -120,7 +120,7 @@ impl BertResourceConfig {
     pub fn base_multilingual_cased() -> Self {
         Self {
             config: "https://huggingface.co/google-bert/bert-base-multilingual-cased/resolve/main/config.json"
-                .parse::<resources::Uri>()
+                .parse::<resource::Uri>()
                 .unwrap()
                 .into(),
             weights: "https://huggingface.co/google-bert/bert-base-multilingual-cased/resolve/main/model.safetensors"
@@ -131,7 +131,7 @@ impl BertResourceConfig {
                 .unwrap(),
             tokenizer_config:
                 "https://huggingface.co/google-bert/bert-base-multilingual-cased/resolve/main/tokenizer_config.json"
-                    .parse::<resources::Uri>()
+                    .parse::<resource::Uri>()
                     .unwrap()
                     .into(),
         }
@@ -141,7 +141,7 @@ impl BertResourceConfig {
     pub fn large_uncased_whole_word_masking() -> Self {
         Self {
             config: "https://huggingface.co/google-bert/bert-large-uncased-whole-word-masking/resolve/main/config.json"
-                .parse::<resources::Uri>()
+                .parse::<resource::Uri>()
                 .unwrap()
                 .into(),
             weights: "https://huggingface.co/google-bert/bert-large-uncased-whole-word-masking/resolve/main/model.safetensors"
@@ -152,7 +152,7 @@ impl BertResourceConfig {
                 .unwrap(),
             tokenizer_config:
                 "https://huggingface.co/google-bert/bert-large-uncased-whole-word-masking/resolve/main/tokenizer_config.json"
-                    .parse::<resources::Uri>()
+                    .parse::<resource::Uri>()
                     .unwrap()
                     .into(),
         }
@@ -162,7 +162,7 @@ impl BertResourceConfig {
     pub fn large_cased_whole_word_masking() -> Self {
         Self {
             config: "https://huggingface.co/google-bert/bert-large-cased-whole-word-masking/resolve/main/config.json"
-                .parse::<resources::Uri>()
+                .parse::<resource::Uri>()
                 .unwrap()
                 .into(),
             weights: "https://huggingface.co/google-bert/bert-large-cased-whole-word-masking/resolve/main/model.safetensors"
@@ -173,7 +173,7 @@ impl BertResourceConfig {
                 .unwrap(),
             tokenizer_config:
                 "https://huggingface.co/google-bert/bert-large-cased-whole-word-masking/resolve/main/tokenizer_config.json"
-                    .parse::<resources::Uri>()
+                    .parse::<resource::Uri>()
                     .unwrap()
                     .into(),
         }

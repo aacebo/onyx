@@ -1,5 +1,5 @@
 use onyx_core::BoxFuture;
-use onyx_core::resources::*;
+use onyx_core::resource::*;
 
 #[derive(Debug, Default, Clone)]
 pub struct TokioResolver {

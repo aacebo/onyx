@@ -4,8 +4,8 @@ mod tokenizer_config;
 mod types;
 
 pub use config::*;
-use onyx_core::models::Forward;
-use onyx_core::resources::*;
+use onyx_core::model::Forward;
+use onyx_core::resource::*;
 use onyx_core::{BoxFuture, Tensor};
 pub use resource::*;
 pub use tokenizer_config::*;
