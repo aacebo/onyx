@@ -1,8 +1,6 @@
 mod architecture;
-mod family;
 
 pub use architecture::*;
-pub use family::*;
 
 use crate::error::ParseError;
 

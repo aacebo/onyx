@@ -28,8 +28,12 @@ doctest = false
 
 [features]
 default = []
+http = ["onyx-core/http", "onyx-tokio/http", "onyx-candle/http"]
+json = ["onyx-core/json", "onyx-candle/json"]
 tokio = ["onyx-tokio"]
+candle = ["onyx-candle"]
 
 [dependencies]
 onyx-core = { path = "crates/onyx-core" }
 onyx-tokio = { path = "crates/onyx-tokio", optional = true }
+onyx-candle = { path = "crates/onyx-candle", optional = true }

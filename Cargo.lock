@@ -1310,6 +1310,7 @@ dependencies = [
 name = "onyxrs"
 version = "0.0.0"
 dependencies = [
+ "onyx-candle",
  "onyx-core",
  "onyx-tokio",
 ]
