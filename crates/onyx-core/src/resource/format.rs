@@ -1,13 +1,10 @@
-use crate::error::DecodeError;
-
 #[non_exhaustive]
 #[derive(Default, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "lowercase")]
 pub enum Format {
     SafeTensors,
     Onnx,
     Text,
-    #[cfg(feature = "json")]
     Json,
     #[default]
     #[serde(other)]
@@ -20,7 +17,6 @@ impl Format {
             "safetensors" => Self::SafeTensors,
             "onnx" => Self::Onnx,
             "txt" => Self::Text,
-            #[cfg(feature = "json")]
             "json" => Self::Json,
             _ => Self::Unknown,
         }
@@ -28,36 +24,11 @@ impl Format {
 
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::SafeTensors => "safe_tensors",
+            Self::SafeTensors => "safetensors",
             Self::Onnx => "onnx",
             Self::Text => "text",
-            #[cfg(feature = "json")]
             Self::Json => "json",
             _ => "??",
-        }
-    }
-
-    #[allow(unused)]
-    pub fn encode<T>(&self, value: &T) -> crate::error::Result<Vec<u8>>
-    where
-        T: serde::Serialize,
-    {
-        match self {
-            #[cfg(feature = "json")]
-            Self::Json => Ok(serde_json::to_vec(value)?),
-            v => Err(DecodeError::InvalidFormat(format!("unsupported encode operation on format '{v}'")).into()),
-        }
-    }
-
-    #[allow(unused)]
-    pub fn decode<T>(&self, bytes: &[u8]) -> crate::error::Result<T>
-    where
-        T: for<'de> serde::Deserialize<'de>,
-    {
-        match self {
-            #[cfg(feature = "json")]
-            Self::Json => Ok(serde_json::from_slice(bytes)?),
-            v => Err(DecodeError::InvalidFormat(format!("unsupported decode operation on format '{v}'")).into()),
         }
     }
 }

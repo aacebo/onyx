@@ -45,7 +45,6 @@ impl net::Resolver for TokioResolver {
                     tokio::fs::write(&path, data).await?;
                     Ok(resource)
                 }
-                #[cfg(feature = "http")]
                 Uri::Http(url) => {
                     let mut res = reqwest::get(url.as_str())
                         .await

@@ -1,5 +1,3 @@
-use std::fmt;
-
 mod config;
 mod decode;
 mod inference;
@@ -37,8 +35,8 @@ pub enum OnyxError {
     Other(Box<dyn std::error::Error + Send + Sync>),
 }
 
-impl fmt::Display for OnyxError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Display for OnyxError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Parse(e) => write!(f, "parse error: {e}"),
             Self::Resolve(e) => write!(f, "resolve error: {e}"),
@@ -65,13 +63,13 @@ impl std::error::Error for OnyxError {
 }
 
 impl serde::de::Error for OnyxError {
-    fn custom<T: fmt::Display>(msg: T) -> Self {
+    fn custom<T: std::fmt::Display>(msg: T) -> Self {
         DecodeError::Json(msg.to_string()).into()
     }
 }
 
 impl serde::ser::Error for OnyxError {
-    fn custom<T: fmt::Display>(msg: T) -> Self {
+    fn custom<T: std::fmt::Display>(msg: T) -> Self {
         DecodeError::Json(msg.to_string()).into()
     }
 }
@@ -138,14 +136,6 @@ impl From<std::string::FromUtf8Error> for OnyxError {
     }
 }
 
-#[cfg(feature = "json")]
-impl From<serde_json::Error> for OnyxError {
-    fn from(e: serde_json::Error) -> Self {
-        DecodeError::Json(e.to_string()).into()
-    }
-}
-
-#[cfg(feature = "http")]
 impl From<url::ParseError> for OnyxError {
     fn from(e: url::ParseError) -> Self {
         ParseError::InvalidUri(e.to_string()).into()

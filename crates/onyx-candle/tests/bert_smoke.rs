@@ -1,5 +1,3 @@
-#![cfg(all(feature = "http", feature = "json"))]
-
 use onyx_candle::models::bert::{BertModelBuilder, BertResourceConfig};
 use onyx_tokio::resources::{TokioReader, TokioResolver};
 

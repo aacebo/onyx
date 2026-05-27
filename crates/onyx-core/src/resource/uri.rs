@@ -5,7 +5,6 @@ use crate::resource::Format;
 pub enum Uri {
     Local(std::path::PathBuf),
     Buffer(Format, Vec<u8>),
-    #[cfg(feature = "http")]
     Http(url::Url),
 }
 
@@ -18,7 +17,6 @@ impl Uri {
         Self::Buffer(format, data.into())
     }
 
-    #[cfg(feature = "http")]
     pub fn http(url: url::Url) -> Self {
         Self::Http(url)
     }
@@ -30,9 +28,7 @@ impl Uri {
             "file" => Self::local(std::path::PathBuf::from(next)),
             "data" => Self::buffer(Format::Unknown, next),
             "data:text/plain" => Self::buffer(Format::Text, next),
-            #[cfg(feature = "json")]
             "data:application/json" => Self::buffer(Format::Json, next),
-            #[cfg(feature = "http")]
             "http" | "https" => Self::Http(url::Url::parse(uri)?),
             _ => return Err(ParseError::InvalidUri(uri.to_string()).into()),
         })
@@ -42,7 +38,6 @@ impl Uri {
         match self {
             Self::Local(v) => v.file_name()?.to_str(),
             Self::Buffer(_, _) => None,
-            #[cfg(feature = "http")]
             Self::Http(v) => v.path_segments()?.last(),
         }
     }
@@ -79,7 +74,6 @@ impl std::fmt::Display for Uri {
         match self {
             Self::Local(v) => write!(f, "file://{}", v.display()),
             Self::Buffer(format, v) => write!(f, "<{}:{}>", format, v.len()),
-            #[cfg(feature = "http")]
             Self::Http(v) => write!(f, "{v}"),
         }
     }

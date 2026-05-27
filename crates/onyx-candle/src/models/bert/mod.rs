@@ -130,7 +130,7 @@ impl BertModelBuilder {
             UriOrConfig::Uri(uri) => {
                 let resource = self.resolver.resolve(&uri).await?;
                 let bytes = self.reader.read(&resource).await?;
-                resource.format.decode(&bytes)?
+                serde_json::from_slice(&bytes).map_err(|err| onyx_core::error::DecodeError::Json(err.to_string()))?
             }
         };
 

@@ -28,8 +28,6 @@ doctest = false
 
 [features]
 default = []
-http = ["onyx-core/http", "onyx-tokio/http", "onyx-candle/http"]
-json = ["onyx-core/json", "onyx-candle/json"]
 tokio = ["onyx-tokio"]
 candle = ["onyx-candle"]
 
