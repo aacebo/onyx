@@ -19,4 +19,3 @@ impl From<BertConfig> for UriOrConfig {
         Self::Config(value)
     }
 }
-

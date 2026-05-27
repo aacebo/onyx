@@ -1,24 +1,26 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum HiddenAct {
+pub enum Activation {
     Gelu,
     Relu,
     Silu,
+    Tanh,
     GeluNew,
 }
 
-impl HiddenAct {
-    pub fn as_str(&self) -> &'static str {
+impl Activation {
+    pub const fn as_str(self) -> &'static str {
         match self {
             Self::Gelu => "gelu",
             Self::Relu => "relu",
             Self::Silu => "silu",
+            Self::Tanh => "tanh",
             Self::GeluNew => "gelu_new",
         }
     }
 }
 
-impl std::fmt::Display for HiddenAct {
+impl std::fmt::Display for Activation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.as_str())
     }
@@ -33,7 +35,7 @@ pub enum PositionEmbeddingType {
 }
 
 impl PositionEmbeddingType {
-    pub fn as_str(&self) -> &'static str {
+    pub const fn as_str(self) -> &'static str {
         match self {
             Self::Absolute => "absolute",
             Self::RelativeKey => "relative_key",

@@ -1,14 +1,10 @@
 mod architecture;
+mod family;
 
 pub use architecture::*;
+pub use family::*;
 
 use crate::error::ParseError;
-
-/*
-pub trait ModelResolver: Send + Sync {
-    fn resolve(&self, id: &ModelId) -> crate::error::Result<Model>;
-}
-*/
 
 pub trait Forward: Send + Sync {
     type Input;

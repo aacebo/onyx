@@ -30,7 +30,7 @@ impl Resolver for StdResolver {
             let mut resource = Resource::from_uri(uri.clone());
 
             if let Some(path) = &self.dir {
-                resource = resource.with_directory(path.clone());
+                resource.path = resource.uri.name().map(|name| path.join(name));
             }
 
             let path = if let Some(p) = &resource.path {

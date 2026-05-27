@@ -53,9 +53,9 @@ impl Uri {
     }
 
     pub fn format(&self) -> Format {
-        match self {
-            Self::Buffer(format, _) => *format,
-            _ => Format::from_ext(self.ext().unwrap_or("unknown")),
+        match self.ext() {
+            None => Format::default(),
+            Some(ext) => Format::from_ext(ext),
         }
     }
 }

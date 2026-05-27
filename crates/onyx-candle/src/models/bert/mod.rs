@@ -29,14 +29,9 @@ pub struct BertModel {
     inner: ct_bert::BertModel,
     tokenizer: tokenizers::Tokenizer,
     device: Device,
-    config: BertConfig,
 }
 
 impl BertModel {
-    pub fn config(&self) -> &BertConfig {
-        &self.config
-    }
-
     pub fn device(&self) -> &Device {
         &self.device
     }
@@ -147,7 +142,7 @@ impl BertModelBuilder {
         let weights_resource = self.resolver.resolve(&self.resources.weights).await?;
         let weights_bytes = self.reader.read(&weights_resource).await?;
 
-        let candle_config: ct_bert::Config = (&config).try_into()?;
+        let candle_config: ct_bert::Config = config.try_into()?;
         let vb = VarBuilder::from_buffered_safetensors(weights_bytes, self.dtype, &self.device)
             .map_err(|e| LoadError::InvalidWeights(e.to_string()))?;
         let inner = ct_bert::BertModel::load(vb, &candle_config).map_err(|e| LoadError::Backend(e.to_string()))?;
@@ -156,7 +151,6 @@ impl BertModelBuilder {
             inner,
             tokenizer,
             device: self.device,
-            config,
         })
     }
 }

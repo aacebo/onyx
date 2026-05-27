@@ -1,6 +1,8 @@
+pub mod device;
 pub mod error;
 pub mod model;
 pub mod resource;
+pub mod tensor;
 pub mod token;
 
 pub use error::{OnyxError, Result};
@@ -20,4 +22,10 @@ pub struct Annotation {
     pub score: f32,
     pub span: Span,
     pub text: String,
+}
+
+pub trait Embedder {
+    type Output;
+
+    fn embed<'a>(&'a self, input: &'a [&'a str]) -> BoxFuture<'a, Vec<Self::Output>>;
 }

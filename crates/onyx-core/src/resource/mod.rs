@@ -23,14 +23,4 @@ impl Resource {
             uri,
         }
     }
-
-    pub fn with_directory(mut self, path: std::path::PathBuf) -> Self {
-        self.path = self.uri.name().map(|v| path.join(v));
-        self
-    }
-
-    pub fn with_format(mut self, format: Format) -> Self {
-        self.format = format;
-        self
-    }
 }

@@ -1,15 +1,17 @@
 use crate::error::DecodeError;
 
+#[non_exhaustive]
 #[derive(Default, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Format {
-    #[default]
-    Unknown,
     SafeTensors,
     Onnx,
     Text,
     #[cfg(feature = "json")]
     Json,
+    #[default]
+    #[serde(other)]
+    Unknown,
 }
 
 impl Format {
@@ -24,14 +26,14 @@ impl Format {
         }
     }
 
-    pub fn as_str(&self) -> &'static str {
+    pub const fn as_str(self) -> &'static str {
         match self {
-            Self::Unknown => "unknown",
             Self::SafeTensors => "safe_tensors",
             Self::Onnx => "onnx",
             Self::Text => "text",
             #[cfg(feature = "json")]
             Self::Json => "json",
+            _ => "??",
         }
     }
 

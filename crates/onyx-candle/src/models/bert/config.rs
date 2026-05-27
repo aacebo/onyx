@@ -1,19 +1,18 @@
 use onyx_core::error::ConfigError;
-use onyx_core::model::Architecture;
+use onyx_core::model::ModelArchitecture;
 
-use crate::models::{HiddenAct, PositionEmbeddingType};
+use crate::models::{Activation, PositionEmbeddingType};
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
 pub struct BertConfig {
-    pub architectures: Vec<Architecture>,
-    pub model_type: Option<String>,
+    pub model_type: ModelArchitecture,
     pub vocab_size: usize,
     pub hidden_size: usize,
     pub num_hidden_layers: usize,
     pub num_attention_heads: usize,
     pub intermediate_size: usize,
-    pub hidden_act: HiddenAct,
+    pub hidden_act: Activation,
     pub hidden_dropout_prob: f32,
     pub attention_probs_dropout_prob: f32,
     pub max_position_embeddings: usize,
@@ -27,14 +26,13 @@ pub struct BertConfig {
 impl Default for BertConfig {
     fn default() -> Self {
         Self {
-            architectures: Vec::new(),
-            model_type: Some("bert".to_string()),
+            model_type: ModelArchitecture::Bert,
             vocab_size: 30522,
             hidden_size: 768,
             num_hidden_layers: 12,
             num_attention_heads: 12,
             intermediate_size: 3072,
-            hidden_act: HiddenAct::Gelu,
+            hidden_act: Activation::Gelu,
             hidden_dropout_prob: 0.1,
             attention_probs_dropout_prob: 0.1,
             max_position_embeddings: 512,
@@ -52,13 +50,8 @@ impl BertConfig {
         Self::default()
     }
 
-    pub fn with_architectures(mut self, architectures: Vec<Architecture>) -> Self {
-        self.architectures = architectures;
-        self
-    }
-
-    pub fn with_model_type(mut self, model_type: impl Into<String>) -> Self {
-        self.model_type = Some(model_type.into());
+    pub fn with_model_type(mut self, model_type: ModelArchitecture) -> Self {
+        self.model_type = model_type;
         self
     }
 
@@ -87,8 +80,8 @@ impl BertConfig {
         self
     }
 
-    pub fn with_hidden_act(mut self, hidden_act: HiddenAct) -> Self {
-        self.hidden_act = hidden_act;
+    pub fn with_hidden_act(mut self, activation: Activation) -> Self {
+        self.hidden_act = activation;
         self
     }
 
@@ -133,17 +126,17 @@ impl BertConfig {
     }
 }
 
-impl TryFrom<&BertConfig> for candle_transformers::models::bert::Config {
+impl TryFrom<BertConfig> for candle_transformers::models::bert::Config {
     type Error = ConfigError;
 
-    fn try_from(value: &BertConfig) -> Result<Self, Self::Error> {
+    fn try_from(value: BertConfig) -> Result<Self, Self::Error> {
         use candle_transformers::models::bert as ct;
 
         let hidden_act = match value.hidden_act {
-            HiddenAct::Gelu => ct::HiddenAct::Gelu,
-            HiddenAct::GeluNew => ct::HiddenAct::GeluApproximate,
-            HiddenAct::Relu => ct::HiddenAct::Relu,
-            HiddenAct::Silu => return Err(ConfigError::InvalidField("hidden_act")),
+            Activation::Gelu => ct::HiddenAct::Gelu,
+            Activation::GeluNew => ct::HiddenAct::GeluApproximate,
+            Activation::Relu => ct::HiddenAct::Relu,
+            _ => return Err(ConfigError::InvalidField("hidden_act")),
         };
 
         let position_embedding_type = match value.position_embedding_type {
@@ -154,6 +147,7 @@ impl TryFrom<&BertConfig> for candle_transformers::models::bert::Config {
         };
 
         Ok(Self {
+            model_type: Some(value.model_type.to_string()),
             vocab_size: value.vocab_size,
             hidden_size: value.hidden_size,
             num_hidden_layers: value.num_hidden_layers,
@@ -169,7 +163,6 @@ impl TryFrom<&BertConfig> for candle_transformers::models::bert::Config {
             position_embedding_type,
             use_cache: true,
             classifier_dropout: None,
-            model_type: value.model_type.clone(),
         })
     }
 }
@@ -184,20 +177,16 @@ mod tests {
         assert_eq!(config.vocab_size, 30522);
         assert_eq!(config.hidden_size, 768);
         assert_eq!(config.num_hidden_layers, 12);
-        assert_eq!(config.hidden_act, HiddenAct::Gelu);
+        assert_eq!(config.hidden_act, Activation::Gelu);
         assert_eq!(config.position_embedding_type, PositionEmbeddingType::Absolute);
     }
 
     #[test]
     fn builder_chains() {
-        let config = BertConfig::default()
-            .with_hidden_size(1024)
-            .with_num_hidden_layers(24)
-            .with_architectures(vec![Architecture::BertForSequenceClassification]);
+        let config = BertConfig::default().with_hidden_size(1024).with_num_hidden_layers(24);
 
         assert_eq!(config.hidden_size, 1024);
         assert_eq!(config.num_hidden_layers, 24);
-        assert_eq!(config.architectures, vec![Architecture::BertForSequenceClassification]);
         assert_eq!(config.vocab_size, 30522);
         assert_eq!(config.num_attention_heads, 12);
     }
@@ -206,7 +195,7 @@ mod tests {
     fn serde_roundtrip() {
         let config = BertConfig::default()
             .with_hidden_size(1024)
-            .with_hidden_act(HiddenAct::GeluNew);
+            .with_hidden_act(Activation::GeluNew);
 
         let json = serde_json::to_string(&config).unwrap();
         let back: BertConfig = serde_json::from_str(&json).unwrap();
@@ -245,8 +234,7 @@ mod tests {
         let config: BertConfig = serde_json::from_str(json).unwrap();
         assert_eq!(config.hidden_size, 768);
         assert_eq!(config.num_attention_heads, 12);
-        assert_eq!(config.hidden_act, HiddenAct::Gelu);
-        assert_eq!(config.architectures, vec![Architecture::BertForMaskedLM]);
+        assert_eq!(config.hidden_act, Activation::Gelu);
     }
 
     #[test]
@@ -256,7 +244,7 @@ mod tests {
             .with_num_attention_heads(12)
             .with_vocab_size(30522);
 
-        let candle: candle_transformers::models::bert::Config = (&onyx).try_into().unwrap();
+        let candle: candle_transformers::models::bert::Config = onyx.try_into().unwrap();
         assert_eq!(candle.hidden_size, 768);
         assert_eq!(candle.num_attention_heads, 12);
         assert_eq!(candle.vocab_size, 30522);
@@ -265,8 +253,8 @@ mod tests {
 
     #[test]
     fn bridge_rejects_silu() {
-        let onyx = BertConfig::default().with_hidden_act(HiddenAct::Silu);
-        let result: Result<candle_transformers::models::bert::Config, _> = (&onyx).try_into();
+        let onyx = BertConfig::default().with_hidden_act(Activation::Silu);
+        let result: Result<candle_transformers::models::bert::Config, _> = onyx.try_into();
         assert!(matches!(result, Err(ConfigError::InvalidField("hidden_act"))));
     }
 }
