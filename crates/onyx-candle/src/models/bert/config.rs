@@ -1,9 +1,9 @@
-use onyx_core::models::{HiddenAct, ModelArchitecture, PositionEmbeddingType};
+use onyx_core::models::{HiddenAct, Architecture, PositionEmbeddingType};
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
 pub struct BertConfig {
-    pub architectures: Vec<ModelArchitecture>,
+    pub architectures: Vec<Architecture>,
     pub vocab_size: usize,
     pub hidden_size: usize,
     pub num_hidden_layers: usize,
@@ -47,7 +47,7 @@ impl BertConfig {
         Self::default()
     }
 
-    pub fn with_architectures(mut self, architectures: Vec<ModelArchitecture>) -> Self {
+    pub fn with_architectures(mut self, architectures: Vec<Architecture>) -> Self {
         self.architectures = architectures;
         self
     }
@@ -142,11 +142,11 @@ mod tests {
         let config = BertConfig::default()
             .with_hidden_size(1024)
             .with_num_hidden_layers(24)
-            .with_architectures(vec![ModelArchitecture::BertForSequenceClassification]);
+            .with_architectures(vec![Architecture::BertForSequenceClassification]);
 
         assert_eq!(config.hidden_size, 1024);
         assert_eq!(config.num_hidden_layers, 24);
-        assert_eq!(config.architectures, vec![ModelArchitecture::BertForSequenceClassification]);
+        assert_eq!(config.architectures, vec![Architecture::BertForSequenceClassification]);
         assert_eq!(config.vocab_size, 30522);
         assert_eq!(config.num_attention_heads, 12);
     }
@@ -195,6 +195,6 @@ mod tests {
         assert_eq!(config.hidden_size, 768);
         assert_eq!(config.num_attention_heads, 12);
         assert_eq!(config.hidden_act, HiddenAct::Gelu);
-        assert_eq!(config.architectures, vec![ModelArchitecture::BertForMaskedLM]);
+        assert_eq!(config.architectures, vec![Architecture::BertForMaskedLM]);
     }
 }

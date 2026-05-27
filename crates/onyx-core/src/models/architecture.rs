@@ -1,7 +1,7 @@
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "PascalCase")]
-pub enum ModelArchitecture {
+pub enum Architecture {
     BertForMaskedLM,
     BertForSequenceClassification,
     BertForTokenClassification,
@@ -9,7 +9,7 @@ pub enum ModelArchitecture {
     BertModel,
 }
 
-impl ModelArchitecture {
+impl Architecture {
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::BertForMaskedLM => "BertForMaskedLM",
@@ -21,7 +21,7 @@ impl ModelArchitecture {
     }
 }
 
-impl std::fmt::Display for ModelArchitecture {
+impl std::fmt::Display for Architecture {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.as_str())
     }

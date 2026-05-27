@@ -192,7 +192,7 @@ pub enum InferenceError {
 #[derive(Debug)]
 pub enum UnsupportedError {
     Task(crate::task::ModelTask),
-    Architecture(crate::config::ModelArchitecture),
+    Architecture(crate::config::Architecture),
     Backend(String),
 }
 ```
@@ -375,7 +375,7 @@ pub use llama::*;
 pub use t5::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ModelArchitecture {
+pub enum Architecture {
     Bert,
     Roberta,
     DistilBert,
@@ -411,12 +411,12 @@ pub enum NativeModelConfig {
 }
 
 impl NativeModelConfig {
-    pub fn architecture(&self) -> ModelArchitecture {
+    pub fn architecture(&self) -> Architecture {
         match self {
-            Self::Bert(_) => ModelArchitecture::Bert,
-            Self::Llama(_) => ModelArchitecture::Llama,
-            Self::T5(_) => ModelArchitecture::T5,
-            Self::Unknown(_) => ModelArchitecture::Unknown,
+            Self::Bert(_) => Architecture::Bert,
+            Self::Llama(_) => Architecture::Llama,
+            Self::T5(_) => Architecture::T5,
+            Self::Unknown(_) => Architecture::Unknown,
         }
     }
 }
@@ -501,7 +501,7 @@ Only add configs as you support them. Don’t define 80 config structs up front.
 // manifest.rs
 
 use crate::artifact::ArtifactSpec;
-use crate::config::{ModelArchitecture, ModelFamily};
+use crate::config::{Architecture, ModelFamily};
 use crate::id::{ModelId, Revision};
 use crate::task::ModelTask;
 
@@ -509,7 +509,7 @@ use crate::task::ModelTask;
 pub struct ModelManifest {
     pub id: ModelId,
     pub revision: Option<Revision>,
-    pub architecture: ModelArchitecture,
+    pub architecture: Architecture,
     pub family: ModelFamily,
     pub tasks: Vec<ModelTask>,
     pub artifacts: Vec<ArtifactSpec>,
@@ -937,18 +937,18 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::backend::Backend;
-use crate::config::ModelArchitecture;
+use crate::config::Architecture;
 use crate::runtime::BoxFuture;
 
 pub struct EmbeddingFactory<B: Backend> {
-    pub architecture: ModelArchitecture,
+    pub architecture: Architecture,
     pub load: for<'a> fn(
         crate::pipeline::LoadContext<B>,
     ) -> BoxFuture<'a, crate::error::Result<Box<dyn EmbeddingPipeline>>>,
 }
 
 pub struct EmbeddingRegistry<B: Backend> {
-    factories: HashMap<ModelArchitecture, EmbeddingFactory<B>>,
+    factories: HashMap<Architecture, EmbeddingFactory<B>>,
 }
 
 impl<B: Backend> EmbeddingRegistry<B> {
@@ -963,7 +963,7 @@ impl<B: Backend> EmbeddingRegistry<B> {
         self
     }
 
-    pub fn get(&self, architecture: ModelArchitecture) -> Option<&EmbeddingFactory<B>> {
+    pub fn get(&self, architecture: Architecture) -> Option<&EmbeddingFactory<B>> {
         self.factories.get(&architecture)
     }
 }
@@ -1077,7 +1077,7 @@ pub use manifest::{
 };
 
 pub use config::{
-    ModelArchitecture,
+    Architecture,
     ModelFamily,
     NativeModelConfig,
     BertConfig,
