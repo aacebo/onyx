@@ -1,4 +1,6 @@
-use onyx_core::models::{HiddenAct, Architecture, PositionEmbeddingType};
+use onyx_core::models::Architecture;
+
+use crate::models::{HiddenAct, PositionEmbeddingType};
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(default)]

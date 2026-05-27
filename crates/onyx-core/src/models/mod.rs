@@ -1,8 +1,6 @@
 mod architecture;
-mod types;
 
 pub use architecture::*;
-pub use types::*;
 
 use crate::error::ParseError;
 
