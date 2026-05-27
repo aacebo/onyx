@@ -19,8 +19,13 @@ json = ["onyx-core/json", "serde_json"]
 [dependencies]
 onyx-core = { path = "../onyx-core" }
 candle-core = { version = "0.10" }
+candle-nn = { version = "0.10" }
+candle-transformers = { version = "0.10" }
+tokenizers = { version = "0.23", default-features = false, features = ["onig"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", optional = true }
 
 [dev-dependencies]
 serde_json = "1"
+onyx-tokio = { path = "../onyx-tokio", features = ["http"] }
+tokio = { version = "1.52", features = ["macros", "rt-multi-thread"] }

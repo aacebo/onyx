@@ -18,7 +18,6 @@ json = ["serde_json"]
 
 [dependencies]
 serde = { version = "1", features = ["derive", "rc"] }
-ndarray = { version = "0.17", features = ["serde"] }
 
 # --- Optional ---
 url = { version = "2", features = ["serde"], optional = true }

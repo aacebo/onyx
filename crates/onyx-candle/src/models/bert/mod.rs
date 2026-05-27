@@ -1,47 +1,87 @@
 mod config;
 mod resource;
-mod tokenizer_config;
 mod types;
 
+use candle_core::{DType, Device, Tensor};
+use candle_nn::VarBuilder;
+use candle_transformers::models::bert as ct_bert;
 pub use config::*;
+use onyx_core::BoxFuture;
+use onyx_core::error::{InferenceError, LoadError, TokenizeError};
 use onyx_core::model::Forward;
 use onyx_core::resource::*;
-use onyx_core::{BoxFuture, Tensor};
 pub use resource::*;
-pub use tokenizer_config::*;
 pub use types::*;
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone)]
 pub struct BertInput {
     pub input_ids: Tensor,
+    pub token_type_ids: Tensor,
     pub attention_mask: Option<Tensor>,
-    pub token_type_ids: Option<Tensor>,
-    pub position_ids: Option<Tensor>,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone)]
 pub struct BertOutput {
     pub last_hidden_state: Tensor,
-    pub pooled_output: Option<Tensor>,
-    pub hidden_states: Option<Vec<Tensor>>,
-    pub attentions: Option<Vec<Tensor>>,
 }
 
 pub struct BertModel {
-    pub config: BertConfig,
-    pub weights: Resource,
-    pub vocab: Resource,
-    pub tokenizer_config: BertTokenizerConfig,
+    inner: ct_bert::BertModel,
+    tokenizer: tokenizers::Tokenizer,
+    device: Device,
+    config: BertConfig,
+}
+
+impl BertModel {
+    pub fn config(&self) -> &BertConfig {
+        &self.config
+    }
+
+    pub fn device(&self) -> &Device {
+        &self.device
+    }
+
+    pub fn tokenizer(&self) -> &tokenizers::Tokenizer {
+        &self.tokenizer
+    }
+
+    /// Tokenize a single string and run a forward pass, returning the last hidden state.
+    pub fn encode(&self, text: &str) -> onyx_core::error::Result<Tensor> {
+        let encoding = self
+            .tokenizer
+            .encode(text, true)
+            .map_err(|e| TokenizeError::Backend(e.to_string()))?;
+
+        let ids = encoding.get_ids();
+        let type_ids = encoding.get_type_ids();
+        let mask = encoding.get_attention_mask();
+
+        let seq_len = ids.len();
+        let input_ids =
+            Tensor::from_slice(ids, (1, seq_len), &self.device).map_err(|e| InferenceError::Backend(e.to_string()))?;
+        let token_type_ids =
+            Tensor::from_slice(type_ids, (1, seq_len), &self.device).map_err(|e| InferenceError::Backend(e.to_string()))?;
+        let attention_mask =
+            Tensor::from_slice(mask, (1, seq_len), &self.device).map_err(|e| InferenceError::Backend(e.to_string()))?;
+
+        self.inner
+            .forward(&input_ids, &token_type_ids, Some(&attention_mask))
+            .map_err(|e| InferenceError::Backend(e.to_string()).into())
+    }
 }
 
 impl Forward for BertModel {
     type Input = BertInput;
     type Output = BertOutput;
 
-    fn forward<'a>(&'a self, _input: Self::Input) -> BoxFuture<'a, onyx_core::error::Result<Self::Output>> {
-        Box::pin(
-            async move { Err(onyx_core::error::InferenceError::Backend("BertModel::forward not yet implemented".into()).into()) },
-        )
+    fn forward<'a>(&'a self, input: Self::Input) -> BoxFuture<'a, onyx_core::error::Result<Self::Output>> {
+        Box::pin(async move {
+            let last_hidden_state = self
+                .inner
+                .forward(&input.input_ids, &input.token_type_ids, input.attention_mask.as_ref())
+                .map_err(|e| InferenceError::Backend(e.to_string()))?;
+            Ok(BertOutput { last_hidden_state })
+        })
     }
 }
 
@@ -49,6 +89,8 @@ pub struct BertModelBuilder {
     resources: BertResourceConfig,
     reader: std::sync::Arc<dyn io::Reader>,
     resolver: std::sync::Arc<dyn net::Resolver>,
+    device: Device,
+    dtype: DType,
 }
 
 impl BertModelBuilder {
@@ -57,6 +99,8 @@ impl BertModelBuilder {
             resources: BertResourceConfig::default(),
             reader: std::sync::Arc::new(io::StdReader::default()) as std::sync::Arc<dyn io::Reader>,
             resolver: std::sync::Arc::new(net::StdResolver::default()) as std::sync::Arc<dyn net::Resolver>,
+            device: Device::Cpu,
+            dtype: ct_bert::DTYPE,
         }
     }
 
@@ -75,8 +119,18 @@ impl BertModelBuilder {
         self
     }
 
+    pub fn device(mut self, device: Device) -> Self {
+        self.device = device;
+        self
+    }
+
+    pub fn dtype(mut self, dtype: DType) -> Self {
+        self.dtype = dtype;
+        self
+    }
+
     pub async fn build(self) -> onyx_core::error::Result<BertModel> {
-        let config = match self.resources.config {
+        let config: BertConfig = match self.resources.config {
             UriOrConfig::Config(v) => v,
             UriOrConfig::Uri(uri) => {
                 let resource = self.resolver.resolve(&uri).await?;
@@ -85,20 +139,24 @@ impl BertModelBuilder {
             }
         };
 
-        let tokenizer_config = match self.resources.tokenizer_config {
-            UriOrTokenizerConfig::Config(v) => v,
-            UriOrTokenizerConfig::Uri(uri) => {
-                let resource = self.resolver.resolve(&uri).await?;
-                let bytes = self.reader.read(&resource).await?;
-                resource.format.decode(&bytes)?
-            }
-        };
+        let tokenizer_uri = self.resources.tokenizer;
+        let tokenizer_resource = self.resolver.resolve(&tokenizer_uri).await?;
+        let tokenizer_bytes = self.reader.read(&tokenizer_resource).await?;
+        let tokenizer = tokenizers::Tokenizer::from_bytes(&tokenizer_bytes).map_err(|e| TokenizeError::Backend(e.to_string()))?;
+
+        let weights_resource = self.resolver.resolve(&self.resources.weights).await?;
+        let weights_bytes = self.reader.read(&weights_resource).await?;
+
+        let candle_config: ct_bert::Config = (&config).try_into()?;
+        let vb = VarBuilder::from_buffered_safetensors(weights_bytes, self.dtype, &self.device)
+            .map_err(|e| LoadError::InvalidWeights(e.to_string()))?;
+        let inner = ct_bert::BertModel::load(vb, &candle_config).map_err(|e| LoadError::Backend(e.to_string()))?;
 
         Ok(BertModel {
+            inner,
+            tokenizer,
+            device: self.device,
             config,
-            weights: self.resolver.resolve(&self.resources.weights).await?,
-            vocab: self.resolver.resolve(&self.resources.vocab).await?,
-            tokenizer_config,
         })
     }
 }

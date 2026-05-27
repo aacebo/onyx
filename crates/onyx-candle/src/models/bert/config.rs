@@ -1,3 +1,4 @@
+use onyx_core::error::ConfigError;
 use onyx_core::model::Architecture;
 
 use crate::models::{HiddenAct, PositionEmbeddingType};
@@ -6,6 +7,7 @@ use crate::models::{HiddenAct, PositionEmbeddingType};
 #[serde(default)]
 pub struct BertConfig {
     pub architectures: Vec<Architecture>,
+    pub model_type: Option<String>,
     pub vocab_size: usize,
     pub hidden_size: usize,
     pub num_hidden_layers: usize,
@@ -26,6 +28,7 @@ impl Default for BertConfig {
     fn default() -> Self {
         Self {
             architectures: Vec::new(),
+            model_type: Some("bert".to_string()),
             vocab_size: 30522,
             hidden_size: 768,
             num_hidden_layers: 12,
@@ -51,6 +54,11 @@ impl BertConfig {
 
     pub fn with_architectures(mut self, architectures: Vec<Architecture>) -> Self {
         self.architectures = architectures;
+        self
+    }
+
+    pub fn with_model_type(mut self, model_type: impl Into<String>) -> Self {
+        self.model_type = Some(model_type.into());
         self
     }
 
@@ -122,6 +130,47 @@ impl BertConfig {
     pub fn with_position_embedding_type(mut self, position_embedding_type: PositionEmbeddingType) -> Self {
         self.position_embedding_type = position_embedding_type;
         self
+    }
+}
+
+impl TryFrom<&BertConfig> for candle_transformers::models::bert::Config {
+    type Error = ConfigError;
+
+    fn try_from(value: &BertConfig) -> Result<Self, Self::Error> {
+        use candle_transformers::models::bert as ct;
+
+        let hidden_act = match value.hidden_act {
+            HiddenAct::Gelu => ct::HiddenAct::Gelu,
+            HiddenAct::GeluNew => ct::HiddenAct::GeluApproximate,
+            HiddenAct::Relu => ct::HiddenAct::Relu,
+            HiddenAct::Silu => return Err(ConfigError::InvalidField("hidden_act")),
+        };
+
+        let position_embedding_type = match value.position_embedding_type {
+            PositionEmbeddingType::Absolute => ct::PositionEmbeddingType::Absolute,
+            PositionEmbeddingType::RelativeKey | PositionEmbeddingType::RelativeKeyQuery => {
+                return Err(ConfigError::InvalidField("position_embedding_type"));
+            }
+        };
+
+        Ok(Self {
+            vocab_size: value.vocab_size,
+            hidden_size: value.hidden_size,
+            num_hidden_layers: value.num_hidden_layers,
+            num_attention_heads: value.num_attention_heads,
+            intermediate_size: value.intermediate_size,
+            hidden_act,
+            hidden_dropout_prob: value.hidden_dropout_prob as f64,
+            max_position_embeddings: value.max_position_embeddings,
+            type_vocab_size: value.type_vocab_size,
+            initializer_range: value.initializer_range as f64,
+            layer_norm_eps: value.layer_norm_eps,
+            pad_token_id: value.pad_token_id,
+            position_embedding_type,
+            use_cache: true,
+            classifier_dropout: None,
+            model_type: value.model_type.clone(),
+        })
     }
 }
 
@@ -198,5 +247,26 @@ mod tests {
         assert_eq!(config.num_attention_heads, 12);
         assert_eq!(config.hidden_act, HiddenAct::Gelu);
         assert_eq!(config.architectures, vec![Architecture::BertForMaskedLM]);
+    }
+
+    #[test]
+    fn bridge_to_candle_config() {
+        let onyx = BertConfig::default()
+            .with_hidden_size(768)
+            .with_num_attention_heads(12)
+            .with_vocab_size(30522);
+
+        let candle: candle_transformers::models::bert::Config = (&onyx).try_into().unwrap();
+        assert_eq!(candle.hidden_size, 768);
+        assert_eq!(candle.num_attention_heads, 12);
+        assert_eq!(candle.vocab_size, 30522);
+        assert_eq!(candle.model_type.as_deref(), Some("bert"));
+    }
+
+    #[test]
+    fn bridge_rejects_silu() {
+        let onyx = BertConfig::default().with_hidden_act(HiddenAct::Silu);
+        let result: Result<candle_transformers::models::bert::Config, _> = (&onyx).try_into();
+        assert!(matches!(result, Err(ConfigError::InvalidField("hidden_act"))));
     }
 }
