@@ -49,7 +49,7 @@ impl Resolver for StdResolver {
 
             match &resource.uri {
                 Uri::Local(src) => {
-                    std::fs::copy(src, path)?;
+                    symlink(src, path)?;
                     Ok(resource)
                 }
                 Uri::Buffer(bytes) => {
@@ -61,4 +61,30 @@ impl Resolver for StdResolver {
             }
         })
     }
+}
+
+pub fn symlink<From, To>(from: From, to: To) -> std::io::Result<()>
+where
+    From: AsRef<std::path::Path>,
+    To: AsRef<std::path::Path>,
+{
+    _symlink(from, to)
+}
+
+#[cfg(windows)]
+fn _symlink<From, To>(from: From, to: To) -> std::io::Result<()>
+where
+    From: AsRef<std::path::Path>,
+    To: AsRef<std::path::Path>,
+{
+    std::os::windows::fs::symlink_file(from, to)
+}
+
+#[cfg(unix)]
+fn _symlink<From, To>(from: From, to: To) -> std::io::Result<()>
+where
+    From: AsRef<std::path::Path>,
+    To: AsRef<std::path::Path>,
+{
+    std::os::unix::fs::symlink(from, to)
 }

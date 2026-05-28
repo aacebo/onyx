@@ -42,7 +42,7 @@ impl Resolver for TokioResolver {
 
             match &resource.uri {
                 Uri::Local(src) => {
-                    tokio::fs::copy(src, path).await?;
+                    crate::fs::symlink(src, path).await?;
                     Ok(resource)
                 }
                 Uri::Buffer(bytes) => {
