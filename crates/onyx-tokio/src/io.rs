@@ -5,7 +5,7 @@ use onyx_core::resource::*;
 #[derive(Debug, Default, Copy, Clone)]
 pub struct TokioReader;
 
-impl io::Reader for TokioReader {
+impl Reader for TokioReader {
     fn read<'a>(&'a self, resource: &'a onyx_core::Resource) -> BoxFuture<'a, onyx_core::error::Result<Vec<u8>>> {
         Box::pin(async move {
             if let Some(path) = &resource.path {

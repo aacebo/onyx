@@ -81,8 +81,8 @@ impl Forward for BertModel {
 
 pub struct BertModelBuilder {
     resources: BertResourceConfig,
-    reader: std::sync::Arc<dyn io::Reader>,
-    resolver: std::sync::Arc<dyn net::Resolver>,
+    reader: std::sync::Arc<dyn Reader>,
+    resolver: std::sync::Arc<dyn Resolver>,
     device: Device,
     dtype: DType,
 }
@@ -91,8 +91,8 @@ impl BertModelBuilder {
     pub fn new() -> Self {
         Self {
             resources: BertResourceConfig::default(),
-            reader: std::sync::Arc::new(io::StdReader::default()) as std::sync::Arc<dyn io::Reader>,
-            resolver: std::sync::Arc::new(net::StdResolver::default()) as std::sync::Arc<dyn net::Resolver>,
+            reader: std::sync::Arc::new(StdReader::default()) as std::sync::Arc<dyn Reader>,
+            resolver: std::sync::Arc::new(StdResolver::default()) as std::sync::Arc<dyn Resolver>,
             device: Device::Cpu,
             dtype: ct_bert::DTYPE,
         }
@@ -103,13 +103,13 @@ impl BertModelBuilder {
         self
     }
 
-    pub fn reader(mut self, value: impl io::Reader + 'static) -> Self {
-        self.reader = std::sync::Arc::new(value) as std::sync::Arc<dyn io::Reader>;
+    pub fn reader(mut self, value: impl Reader + 'static) -> Self {
+        self.reader = std::sync::Arc::new(value) as std::sync::Arc<dyn Reader>;
         self
     }
 
-    pub fn resolver(mut self, value: impl net::Resolver + 'static) -> Self {
-        self.resolver = std::sync::Arc::new(value) as std::sync::Arc<dyn net::Resolver>;
+    pub fn resolver(mut self, value: impl Resolver + 'static) -> Self {
+        self.resolver = std::sync::Arc::new(value) as std::sync::Arc<dyn Resolver>;
         self
     }
 

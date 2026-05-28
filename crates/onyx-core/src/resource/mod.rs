@@ -1,11 +1,13 @@
 mod bytes;
 mod format;
-pub mod io;
-pub mod net;
+mod io;
+mod net;
 mod uri;
 
 pub use bytes::*;
 pub use format::*;
+pub use io::*;
+pub use net::*;
 pub use uri::*;
 
 pub trait Artifact {

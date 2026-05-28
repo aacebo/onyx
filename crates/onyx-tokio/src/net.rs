@@ -17,7 +17,7 @@ impl TokioResolver {
     }
 }
 
-impl net::Resolver for TokioResolver {
+impl Resolver for TokioResolver {
     fn resolve<'a>(&'a self, uri: &'a Uri) -> BoxFuture<'a, onyx_core::error::Result<Resource>> {
         Box::pin(async move {
             let mut resource = Resource::from_uri(uri.clone());

@@ -1,5 +1,6 @@
 use onyx_candle::models::bert::{BertModelBuilder, BertResourceConfig};
-use onyx_tokio::{io::TokioReader, net::TokioResolver};
+use onyx_tokio::io::TokioReader;
+use onyx_tokio::net::TokioResolver;
 
 #[tokio::test]
 #[ignore = "downloads ~90MB from huggingface.co; run with `cargo test --features http,json -- --ignored`"]
