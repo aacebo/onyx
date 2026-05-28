@@ -10,8 +10,8 @@ impl io::Reader for TokioReader {
         Box::pin(async move {
             if let Some(path) = &resource.path {
                 Ok(tokio::fs::read(path).await?)
-            } else if let Uri::Buffer(_, data) = &resource.uri {
-                Ok(data.clone())
+            } else if let Uri::Buffer(bytes) = &resource.uri {
+                Ok(bytes.data.clone())
             } else {
                 Err(ReadError::NotFound("file not found, no path provided".into()))?
             }

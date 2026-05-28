@@ -48,8 +48,8 @@ impl Resolver for StdResolver {
                     std::fs::copy(src, path)?;
                     Ok(resource)
                 }
-                Uri::Buffer(_, data) => {
-                    std::fs::write(&path, data)?;
+                Uri::Buffer(bytes) => {
+                    std::fs::write(&path, &bytes.data)?;
                     Ok(resource)
                 }
                 #[allow(unreachable_patterns)]

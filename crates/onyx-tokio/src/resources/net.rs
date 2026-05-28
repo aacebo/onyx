@@ -41,8 +41,8 @@ impl net::Resolver for TokioResolver {
                     tokio::fs::copy(src, path).await?;
                     Ok(resource)
                 }
-                Uri::Buffer(_, data) => {
-                    tokio::fs::write(&path, data).await?;
+                Uri::Buffer(bytes) => {
+                    tokio::fs::write(&path, &bytes.data).await?;
                     Ok(resource)
                 }
                 Uri::Http(url) => {

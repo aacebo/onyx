@@ -1,10 +1,10 @@
 use crate::error::ParseError;
-use crate::resource::Format;
+use crate::resource::{Bytes, Format};
 
 #[derive(Clone, PartialEq, Eq)]
 pub enum Uri {
     Local(std::path::PathBuf),
-    Buffer(Format, Vec<u8>),
+    Buffer(Bytes),
     Http(url::Url),
 }
 
@@ -13,8 +13,8 @@ impl Uri {
         Self::Local(path.into())
     }
 
-    pub fn buffer(format: Format, data: impl Into<Vec<u8>>) -> Self {
-        Self::Buffer(format, data.into())
+    pub fn buffer(bytes: impl Into<Bytes>) -> Self {
+        Self::Buffer(bytes.into())
     }
 
     pub fn http(url: url::Url) -> Self {
@@ -26,10 +26,8 @@ impl Uri {
 
         Ok(match scheme {
             "file" => Self::local(std::path::PathBuf::from(next)),
-            "data" => Self::buffer(Format::Unknown, next),
-            "data:text/plain" => Self::buffer(Format::Text, next),
-            "data:application/json" => Self::buffer(Format::Json, next),
             "http" | "https" => Self::Http(url::Url::parse(uri)?),
+            "data" => Self::Buffer(Bytes::parse(next)?),
             _ => return Err(ParseError::InvalidUri(uri.to_string()).into()),
         })
     }
@@ -37,7 +35,7 @@ impl Uri {
     pub fn name(&self) -> Option<&str> {
         match self {
             Self::Local(v) => v.file_name()?.to_str(),
-            Self::Buffer(_, _) => None,
+            Self::Buffer(v) => v.name.as_deref(),
             Self::Http(v) => v.path_segments()?.last(),
         }
     }
@@ -73,7 +71,7 @@ impl std::fmt::Display for Uri {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Local(v) => write!(f, "file://{}", v.display()),
-            Self::Buffer(format, v) => write!(f, "<{}:{}>", format, v.len()),
+            Self::Buffer(v) => write!(f, "data://{v}"),
             Self::Http(v) => write!(f, "{v}"),
         }
     }
@@ -98,5 +96,93 @@ impl<'de> serde::Deserialize<'de> for Uri {
         let uri = String::deserialize(deserializer)?;
         let ur = Self::parse(&uri).map_err(|err| Error::custom(err))?;
         Ok(ur)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::resource::Encoding;
+
+    fn buffer(format: Format, encoding: Encoding, data: impl Into<Vec<u8>>) -> Uri {
+        Uri::Buffer(Bytes {
+            name: None,
+            format,
+            encoding,
+            data: data.into(),
+        })
+    }
+
+    fn named_buffer(name: &str, format: Format, encoding: Encoding, data: impl Into<Vec<u8>>) -> Uri {
+        Uri::Buffer(Bytes {
+            name: Some(name.to_string()),
+            format,
+            encoding,
+            data: data.into(),
+        })
+    }
+
+    #[test]
+    fn parses_plain_text_data() {
+        assert_eq!(
+            Uri::parse("data://text/plain,hello").unwrap(),
+            buffer(Format::Text, Encoding::Utf8, b"hello".to_vec())
+        );
+    }
+
+    #[test]
+    fn parses_base64_json_data() {
+        assert_eq!(
+            Uri::parse("data://application/json;base64,e30=").unwrap(),
+            buffer(Format::Json, Encoding::Base64, b"{}".to_vec())
+        );
+    }
+
+    #[test]
+    fn parses_data_without_mediatype() {
+        assert_eq!(
+            Uri::parse("data://hello").unwrap(),
+            buffer(Format::Unknown, Encoding::Utf8, b"hello".to_vec())
+        );
+    }
+
+    #[test]
+    fn rejects_invalid_base64() {
+        assert!(matches!(
+            Uri::parse("data://;base64,not valid!"),
+            Err(crate::OnyxError::Parse(ParseError::InvalidUri(_)))
+        ));
+    }
+
+    #[test]
+    fn parses_name_param() {
+        assert_eq!(
+            Uri::parse("data://application/json;name=config.json;base64,e30=").unwrap(),
+            named_buffer("config.json", Format::Json, Encoding::Base64, b"{}".to_vec())
+        );
+    }
+
+    #[test]
+    fn round_trips_text_json_and_binary() {
+        let cases = [
+            buffer(Format::Text, Encoding::Utf8, b"hello world".to_vec()),
+            buffer(Format::Json, Encoding::Base64, b"{\"a\":1}".to_vec()),
+            buffer(Format::Json, Encoding::Base64, vec![0u8, 159, 146, 150, 255]),
+            named_buffer("config.json", Format::Json, Encoding::Base64, b"{}".to_vec()),
+            named_buffer("notes.txt", Format::Text, Encoding::Utf8, b"hi".to_vec()),
+        ];
+
+        for uri in cases {
+            assert_eq!(Uri::parse(&uri.to_string()).unwrap(), uri);
+        }
+    }
+
+    #[test]
+    fn other_schemes_unchanged() {
+        assert!(matches!(Uri::parse("file:///tmp/x.json").unwrap(), Uri::Local(_)));
+        assert!(matches!(
+            Uri::parse("https://huggingface.co/m/resolve/main/f.safetensors").unwrap(),
+            Uri::Http(_)
+        ));
     }
 }

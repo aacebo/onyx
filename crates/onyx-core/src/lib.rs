@@ -4,7 +4,6 @@ pub mod model;
 pub mod resource;
 pub mod tensor;
 pub mod token;
-pub mod artifact;
 
 pub use error::{OnyxError, Result};
 pub use resource::Resource;
