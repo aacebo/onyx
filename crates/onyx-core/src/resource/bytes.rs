@@ -90,9 +90,7 @@ impl std::str::FromStr for Bytes {
 
 impl std::fmt::Display for Bytes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mediatype = self.mime_type();
-
-        write!(f, "{mediatype}")?;
+        write!(f, "{}", self.mime_type())?;
 
         if let Some(name) = &self.name {
             write!(f, ";name={}", name)?;
