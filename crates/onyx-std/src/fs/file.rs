@@ -1,48 +1,54 @@
 use onyx_core::BoxFuture;
 use onyx_core::fs::File;
 
-pub struct TokioFile(std::path::PathBuf);
+pub struct StdFile(std::path::PathBuf);
 
-impl<'l> File for TokioFile {
+impl From<&std::path::Path> for StdFile {
+    fn from(value: &std::path::Path) -> Self {
+        Self(value.to_path_buf())
+    }
+}
+
+impl File for StdFile {
     fn path(&self) -> &std::path::Path {
         &self.0
     }
 
     fn exists(&self) -> BoxFuture<'_, std::io::Result<bool>> {
-        Box::pin(async move { tokio::fs::try_exists(&self.0).await })
+        Box::pin(async move { std::fs::exists(&self.0) })
     }
 
     fn metadata(&self) -> BoxFuture<'_, std::io::Result<std::fs::Metadata>> {
-        Box::pin(async move { tokio::fs::metadata(&self.0).await })
+        Box::pin(async move { self.0.metadata() })
     }
 
     fn read(&self) -> BoxFuture<'_, std::io::Result<Vec<u8>>> {
-        Box::pin(async move { tokio::fs::read(&self.0).await })
+        Box::pin(async move { std::fs::read(&self.0) })
     }
 
     fn write<'a>(&'a self, bytes: &'a [u8]) -> BoxFuture<'a, std::io::Result<()>> {
-        Box::pin(async move { tokio::fs::write(&self.0, bytes).await })
+        Box::pin(async move { std::fs::write(&self.0, bytes) })
     }
 
     fn symlink<'a>(&'a self, dest: &'a std::path::Path) -> BoxFuture<'a, std::io::Result<()>> {
-        Box::pin(async move { _symlink(&self.0, dest).await })
+        Box::pin(async move { _symlink(&self.0, dest) })
     }
 }
 
 #[cfg(windows)]
-async fn _symlink<From, To>(from: From, to: To) -> std::io::Result<()>
+fn _symlink<From, To>(from: From, to: To) -> std::io::Result<()>
 where
     From: AsRef<std::path::Path>,
     To: AsRef<std::path::Path>,
 {
-    tokio::fs::symlink_file(from, to).await
+    std::os::windows::fs::symlink_file(from, to)
 }
 
 #[cfg(unix)]
-async fn _symlink<From, To>(from: From, to: To) -> std::io::Result<()>
+fn _symlink<From, To>(from: From, to: To) -> std::io::Result<()>
 where
     From: AsRef<std::path::Path>,
     To: AsRef<std::path::Path>,
 {
-    tokio::fs::symlink(from, to).await
+    std::os::unix::fs::symlink(from, to)
 }

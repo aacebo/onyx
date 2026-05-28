@@ -1,12 +1,5 @@
-use super::{Resource, Uri};
-use crate::BoxFuture;
-use crate::error::ResolveError;
-
-pub trait Resolver: Send + Sync {
-    /// resolves a resource and returns
-    /// its on-disk path.
-    fn resolve<'a>(&'a self, uri: &'a Uri) -> BoxFuture<'a, crate::error::Result<Resource>>;
-}
+use onyx_core::resource::*;
+use onyx_core::{BoxFuture, error};
 
 #[derive(Default)]
 pub struct StdResolver {
@@ -25,7 +18,7 @@ impl StdResolver {
 }
 
 impl Resolver for StdResolver {
-    fn resolve<'a>(&'a self, uri: &'a Uri) -> BoxFuture<'a, crate::error::Result<Resource>> {
+    fn resolve<'a>(&'a self, uri: &'a Uri) -> BoxFuture<'a, error::Result<Resource>> {
         Box::pin(async move {
             let mut resource = Resource::from_uri(uri.clone());
 
@@ -57,7 +50,7 @@ impl Resolver for StdResolver {
                     Ok(resource)
                 }
                 #[allow(unreachable_patterns)]
-                v => Err(ResolveError::UnsupportedScheme(v.to_string()).into()),
+                v => Err(error::ResolveError::UnsupportedScheme(v.to_string()).into()),
             }
         })
     }

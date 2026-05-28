@@ -1,6 +1,8 @@
 pub mod device;
 pub mod error;
+pub mod fs;
 pub mod model;
+pub mod net;
 pub mod resource;
 pub mod tensor;
 pub mod token;

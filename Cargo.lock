@@ -1299,6 +1299,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "onyx-std"
+version = "0.0.0"
+dependencies = [
+ "onyx-core",
+]
+
+[[package]]
 name = "onyx-tokio"
 version = "0.0.0"
 dependencies = [

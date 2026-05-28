@@ -1,14 +1,20 @@
 mod bytes;
 mod format;
-mod io;
-mod net;
 mod uri;
 
 pub use bytes::*;
 pub use format::*;
-pub use io::*;
-pub use net::*;
 pub use uri::*;
+
+pub trait Reader: Send + Sync {
+    fn read<'a>(&'a self, resource: &'a Resource) -> crate::BoxFuture<'a, crate::error::Result<Vec<u8>>>;
+}
+
+pub trait Resolver: Send + Sync {
+    /// resolves a resource and returns
+    /// its on-disk path.
+    fn resolve<'a>(&'a self, uri: &'a Uri) -> crate::BoxFuture<'a, crate::error::Result<Resource>>;
+}
 
 pub trait Artifact {
     fn name(&self) -> &str;
