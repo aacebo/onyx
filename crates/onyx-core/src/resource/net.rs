@@ -39,6 +39,10 @@ impl Resolver for StdResolver {
                 return Ok(resource);
             };
 
+            if let Ok(meta) = std::fs::metadata(path) {
+                resource.size = meta.len();
+            }
+
             if std::fs::exists(&path)? {
                 return Ok(resource);
             }

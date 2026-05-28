@@ -10,14 +10,15 @@ pub use uri::*;
 
 pub trait Artifact {
     fn name(&self) -> &str;
+    fn uri(&self) -> &Uri;
     fn format(&self) -> Format;
-    fn source(&self) -> &Uri;
 }
 
 #[derive(Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Resource {
     pub path: Option<std::path::PathBuf>,
     pub uri: Uri,
+    pub size: u64,
     pub format: Format,
 }
 
@@ -28,6 +29,7 @@ impl Resource {
         Self {
             path: uri.name().map(|v| std::env::temp_dir().join(v)),
             uri,
+            size: 0,
             format,
         }
     }
@@ -38,11 +40,11 @@ impl Artifact for Resource {
         self.uri.name().unwrap_or("??")
     }
 
-    fn format(&self) -> Format {
-        self.format
+    fn uri(&self) -> &Uri {
+        &self.uri
     }
 
-    fn source(&self) -> &Uri {
-        &self.uri
+    fn format(&self) -> Format {
+        self.format
     }
 }

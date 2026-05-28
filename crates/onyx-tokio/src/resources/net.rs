@@ -32,6 +32,10 @@ impl net::Resolver for TokioResolver {
                 return Ok(resource);
             };
 
+            if let Ok(meta) = tokio::fs::metadata(path).await {
+                resource.size = meta.len();
+            }
+
             if tokio::fs::try_exists(&path).await? {
                 return Ok(resource);
             }
