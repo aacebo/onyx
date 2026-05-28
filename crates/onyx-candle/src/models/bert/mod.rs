@@ -50,7 +50,6 @@ impl BertModel {
         let ids = encoding.get_ids();
         let type_ids = encoding.get_type_ids();
         let mask = encoding.get_attention_mask();
-
         let seq_len = ids.len();
         let input_ids =
             Tensor::from_slice(ids, (1, seq_len), &self.device).map_err(|e| InferenceError::Backend(e.to_string()))?;
@@ -138,10 +137,8 @@ impl BertModelBuilder {
         let tokenizer_resource = self.resolver.resolve(&tokenizer_uri).await?;
         let tokenizer_bytes = self.reader.read(&tokenizer_resource).await?;
         let tokenizer = tokenizers::Tokenizer::from_bytes(&tokenizer_bytes).map_err(|e| TokenizeError::Backend(e.to_string()))?;
-
         let weights_resource = self.resolver.resolve(&self.resources.weights).await?;
         let weights_bytes = self.reader.read(&weights_resource).await?;
-
         let candle_config: ct_bert::Config = config.try_into()?;
         let vb = VarBuilder::from_buffered_safetensors(weights_bytes, self.dtype, &self.device)
             .map_err(|e| LoadError::InvalidWeights(e.to_string()))?;

@@ -28,7 +28,7 @@ impl std::fmt::Display for Encoding {
     }
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct Bytes {
     pub name: Option<String>,
     pub format: Format,

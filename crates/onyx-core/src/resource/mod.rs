@@ -14,7 +14,7 @@ pub trait Artifact {
     fn format(&self) -> Format;
 }
 
-#[derive(Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct Resource {
     pub path: Option<std::path::PathBuf>,
     pub uri: Uri,

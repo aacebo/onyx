@@ -1,7 +1,7 @@
 use crate::error::ParseError;
 use crate::resource::{Bytes, Format};
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Uri {
     Local(std::path::PathBuf),
     Buffer(Bytes),
