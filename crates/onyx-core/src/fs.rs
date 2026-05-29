@@ -1,5 +1,7 @@
 use crate::BoxFuture;
 
+/// Defines how the environment will
+/// interact with the local file system.
 pub trait FileSystem {
     fn exists(&self, path: &std::path::Path) -> BoxFuture<'_, std::io::Result<bool>>;
     fn metadata(&self, path: &std::path::Path) -> BoxFuture<'_, std::io::Result<std::fs::Metadata>>;

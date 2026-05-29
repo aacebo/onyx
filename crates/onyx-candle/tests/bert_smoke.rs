@@ -14,8 +14,8 @@ async fn bert_mini_lm_encode_smoke() {
         .expect("build BertModel");
 
     let hidden = model.encode("Hello, world!").expect("encode");
-
     let dims = hidden.dims();
+
     assert_eq!(dims.len(), 3, "expected [batch, seq, hidden], got {dims:?}");
     assert_eq!(dims[0], 1, "batch dim");
     assert_eq!(dims[2], 384, "MiniLM-L6 hidden size");

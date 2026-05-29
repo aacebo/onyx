@@ -6,6 +6,8 @@ pub use directory::*;
 pub use file::*;
 pub use remote::*;
 
+/// Represents an asset that has yet
+/// to be resolved (read).
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Asset {
@@ -55,4 +57,13 @@ impl From<Remote> for Asset {
     fn from(value: Remote) -> Self {
         Self::Remote(value)
     }
+}
+
+/// Represents the resolved (read) data of
+/// some asset.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum AssetData {
+    File(Vec<u8>),
+    Directory(Vec<Asset>),
 }
