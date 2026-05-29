@@ -81,8 +81,8 @@ impl Forward for BertModel {
 
 pub struct BertModelBuilder {
     resources: BertResourceConfig,
-    reader: std::sync::Arc<dyn Reader>,
-    resolver: std::sync::Arc<dyn Resolver>,
+    reader: Option<std::sync::Arc<dyn Reader>>,
+    resolver: Option<std::sync::Arc<dyn Resolver>>,
     device: Device,
     dtype: DType,
 }
@@ -91,8 +91,8 @@ impl BertModelBuilder {
     pub fn new() -> Self {
         Self {
             resources: BertResourceConfig::default(),
-            reader: std::sync::Arc::new(StdReader::default()) as std::sync::Arc<dyn Reader>,
-            resolver: std::sync::Arc::new(StdResolver::default()) as std::sync::Arc<dyn Resolver>,
+            reader: None,
+            resolver: None,
             device: Device::Cpu,
             dtype: ct_bert::DTYPE,
         }
@@ -104,12 +104,12 @@ impl BertModelBuilder {
     }
 
     pub fn reader(mut self, value: impl Reader + 'static) -> Self {
-        self.reader = std::sync::Arc::new(value) as std::sync::Arc<dyn Reader>;
+        self.reader = Some(std::sync::Arc::new(value) as std::sync::Arc<dyn Reader>);
         self
     }
 
     pub fn resolver(mut self, value: impl Resolver + 'static) -> Self {
-        self.resolver = std::sync::Arc::new(value) as std::sync::Arc<dyn Resolver>;
+        self.resolver = Some(std::sync::Arc::new(value) as std::sync::Arc<dyn Resolver>);
         self
     }
 
@@ -124,21 +124,23 @@ impl BertModelBuilder {
     }
 
     pub async fn build(self) -> onyx_core::error::Result<BertModel> {
+        let reader = self.reader.expect("resource reader");
+        let resolver = self.resolver.expect("resource resolver");
         let config: BertConfig = match self.resources.config {
             UriOrConfig::Config(v) => v,
             UriOrConfig::Uri(uri) => {
-                let resource = self.resolver.resolve(&uri).await?;
-                let bytes = self.reader.read(&resource).await?;
+                let resource = resolver.resolve(&uri).await?;
+                let bytes = reader.read(&resource).await?;
                 serde_json::from_slice(&bytes).map_err(|err| onyx_core::error::DecodeError::Json(err.to_string()))?
             }
         };
 
         let tokenizer_uri = self.resources.tokenizer;
-        let tokenizer_resource = self.resolver.resolve(&tokenizer_uri).await?;
-        let tokenizer_bytes = self.reader.read(&tokenizer_resource).await?;
+        let tokenizer_resource = resolver.resolve(&tokenizer_uri).await?;
+        let tokenizer_bytes = reader.read(&tokenizer_resource).await?;
         let tokenizer = tokenizers::Tokenizer::from_bytes(&tokenizer_bytes).map_err(|e| TokenizeError::Backend(e.to_string()))?;
-        let weights_resource = self.resolver.resolve(&self.resources.weights).await?;
-        let weights_bytes = self.reader.read(&weights_resource).await?;
+        let weights_resource = resolver.resolve(&self.resources.weights).await?;
+        let weights_bytes = reader.read(&weights_resource).await?;
         let candle_config: ct_bert::Config = config.try_into()?;
         let vb = VarBuilder::from_buffered_safetensors(weights_bytes, self.dtype, &self.device)
             .map_err(|e| LoadError::InvalidWeights(e.to_string()))?;
