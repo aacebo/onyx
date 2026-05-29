@@ -32,3 +32,12 @@ pub trait Embedder {
 
     fn embed<'a>(&'a self, input: &'a [&'a str]) -> BoxFuture<'a, Vec<Self::Output>>;
 }
+
+pub trait Runtime {
+    type Error: std::error::Error;
+    type FileSystem: fs::FileSystem;
+    type DataSource: net::DataSource;
+
+    fn file_system(&self) -> &Self::FileSystem;
+    fn data_source(&self) -> &Self::DataSource;
+}

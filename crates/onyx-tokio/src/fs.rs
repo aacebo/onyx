@@ -1,31 +1,39 @@
 use onyx_core::BoxFuture;
-use onyx_core::fs::File;
+use onyx_core::fs::FileSystem;
 
-pub struct TokioFile(std::path::PathBuf);
+pub struct TokioFileSystem(std::path::PathBuf);
 
-impl<'l> File for TokioFile {
-    fn path(&self) -> &std::path::Path {
-        &self.0
+impl From<&std::path::Path> for TokioFileSystem {
+    fn from(value: &std::path::Path) -> Self {
+        Self(value.to_path_buf())
+    }
+}
+
+impl FileSystem for TokioFileSystem {
+    fn exists(&self, path: &std::path::Path) -> BoxFuture<'_, std::io::Result<bool>> {
+        let p = self.0.join(path);
+        Box::pin(async move { tokio::fs::try_exists(p).await })
     }
 
-    fn exists(&self) -> BoxFuture<'_, std::io::Result<bool>> {
-        Box::pin(async move { tokio::fs::try_exists(&self.0).await })
+    fn metadata(&self, path: &std::path::Path) -> BoxFuture<'_, std::io::Result<std::fs::Metadata>> {
+        let p = self.0.join(path);
+        Box::pin(async move { tokio::fs::metadata(p).await })
     }
 
-    fn metadata(&self) -> BoxFuture<'_, std::io::Result<std::fs::Metadata>> {
-        Box::pin(async move { tokio::fs::metadata(&self.0).await })
+    fn read(&self, path: &std::path::Path) -> BoxFuture<'_, std::io::Result<Vec<u8>>> {
+        let p = self.0.join(path);
+        Box::pin(async move { tokio::fs::read(p).await })
     }
 
-    fn read(&self) -> BoxFuture<'_, std::io::Result<Vec<u8>>> {
-        Box::pin(async move { tokio::fs::read(&self.0).await })
+    fn write<'a>(&'a self, path: &std::path::Path, bytes: &'a [u8]) -> BoxFuture<'a, std::io::Result<()>> {
+        let p = self.0.join(path);
+        Box::pin(async move { tokio::fs::write(p, bytes).await })
     }
 
-    fn write<'a>(&'a self, bytes: &'a [u8]) -> BoxFuture<'a, std::io::Result<()>> {
-        Box::pin(async move { tokio::fs::write(&self.0, bytes).await })
-    }
-
-    fn symlink<'a>(&'a self, dest: &'a std::path::Path) -> BoxFuture<'a, std::io::Result<()>> {
-        Box::pin(async move { _symlink(&self.0, dest).await })
+    fn symlink(&self, src: &std::path::Path, dest: &std::path::Path) -> BoxFuture<'_, std::io::Result<()>> {
+        let from = self.0.join(src);
+        let to = self.0.join(dest);
+        Box::pin(async move { _symlink(from, to).await })
     }
 }
 
