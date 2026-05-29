@@ -19,6 +19,7 @@ onyx-core = { path = "../onyx-core" }
 candle-core = { version = "0.10" }
 candle-nn = { version = "0.10" }
 candle-transformers = { version = "0.10" }
+hf-hub = { version = "0.5" }
 tokenizers = { version = "0.23", default-features = false, features = ["onig"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }

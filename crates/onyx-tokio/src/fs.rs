@@ -44,15 +44,15 @@ impl Repository for TokioFileSystem {
         Box::pin(async move { Ok(tokio::fs::try_exists(p).await?) })
     }
 
-    fn get(&self, path: &std::path::Path) -> BoxFuture<'_, onyx_core::Result<onyx_core::net::Asset>> {
+    fn get(&self, _path: &std::path::Path) -> BoxFuture<'_, onyx_core::Result<onyx_core::net::Asset>> {
         todo!()
     }
 
-    fn read(&self, path: &std::path::Path) -> BoxFuture<'_, onyx_core::Result<onyx_core::net::AssetData>> {
+    fn read(&self, _path: &std::path::Path) -> BoxFuture<'_, onyx_core::Result<onyx_core::net::AssetData>> {
         todo!()
     }
 
-    fn copy(&self, src: &std::path::Path, dest: &std::path::Path) -> BoxFuture<'_, onyx_core::Result<u64>> {
+    fn copy(&self, _src: &std::path::Path, _dest: &std::path::Path) -> BoxFuture<'_, onyx_core::Result<u64>> {
         todo!()
     }
 }
