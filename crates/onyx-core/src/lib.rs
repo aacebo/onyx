@@ -11,6 +11,7 @@ pub use error::{OnyxError, Result};
 pub use resource::Resource;
 
 pub type BoxFuture<'a, T> = std::pin::Pin<Box<dyn std::future::Future<Output = T> + Send + 'a>>;
+pub type BoxAsyncFuture<T> = Box<dyn FnOnce() -> std::pin::Pin<Box<dyn Future<Output = T>>>>;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Span {
